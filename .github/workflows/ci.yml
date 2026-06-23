@@ -71,7 +71,7 @@ jobs:
         run: uv run --no-sync mypy vgi_wikipedia/ wikipedia_worker.py serve.py
 
       - name: Docstring lint (pydoclint)
-        run: uv run --no-sync pydoclint vgi_wikipedia/ wikipedia_worker.py serve.py
+        run: uvx pydoclint --config pyproject.toml vgi_wikipedia/ wikipedia_worker.py serve.py
 
   # Resolve the latest published haybarn release once, so the whole matrix tests
   # the same version (and we never hardcode/pin it).
