@@ -1,3 +1,10 @@
+# Copyright 2026 Query Farm LLC - https://query.farm
+#
+# Unit tests (pytest), lint, and the sqllogictest extension suite
+# (test/sql/*.test) run against the vgi-wikipedia worker through the real signed
+# `vgi` DuckDB community extension via a prebuilt standalone `haybarn-unittest`.
+# The SQL E2E points the worker at a local mock MediaWiki server — no keys, no
+# cost, no live egress. See ci/README.md for the design.
 name: CI
 
 on:
@@ -12,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
@@ -23,66 +34,102 @@ jobs:
         python-version: ["3.13"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --frozen --all-extras
 
-      # Fixture parser tests, in-process scan-state round-trip, and the
-      # mock-server E2E. The `live` tests (real Wikipedia) are excluded from the
-      # gate so CI never depends on the network.
-      - name: Run unit tests
+      # The `live` marker (real Wikipedia over the network) is excluded.
+      - name: Run tests
         run: uv run --no-sync pytest -q -m "not live"
-
-  e2e-sql:
-    name: E2E SQL (DuckDB, mock-driven)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Set up Python 3.13
-        run: uv python install 3.13
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Install haybarn-unittest (sqllogictest runner)
-        run: uv tool install haybarn-unittest
-
-      # Starts a local mock MediaWiki server, points the worker's
-      # VGI_WIKIPEDIA_API_URL at it, and runs the worker as a real DuckDB
-      # subprocess. No keys, no cost, no live Wikipedia.
-      - name: Run SQL end-to-end tests
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          make test-sql
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Check formatting
-        run: uv run --no-sync ruff format --check .
+        run: uv sync --frozen --all-extras
 
       - name: Check linting
         run: uv run --no-sync ruff check .
 
-      - name: Type check
+      - name: Type check (mypy)
         run: uv run --no-sync mypy vgi_wikipedia/
+
+  # Resolve the latest published haybarn release once, so the whole matrix tests
+  # the same version (and we never hardcode/pin it).
+  resolve-haybarn:
+    name: Resolve haybarn release
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.r.outputs.release }}
+    steps:
+      - id: r
+        run: |
+          REL=$(gh release view --repo Query-farm-haybarn/haybarn --json tagName --jq .tagName)
+          echo "release=$REL" >> "$GITHUB_OUTPUT"
+          echo "Latest haybarn release: $REL"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  integration:
+    name: End-to-end SQL on ${{ matrix.os }}
+    needs: resolve-haybarn
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, asset: haybarn_unittest-linux-amd64.zip }
+          - { os: macos-latest,  asset: haybarn_unittest-osx-arm64.zip }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install the worker (from the lockfile)
+        run: uv sync --frozen --python 3.13
+
+      - name: Download haybarn-unittest
+        run: |
+          gh release download "$HAYBARN_RELEASE" \
+            --repo Query-farm-haybarn/haybarn \
+            --pattern '${{ matrix.asset }}' \
+            --output haybarn-unittest.zip --clobber
+          mkdir -p hb && unzip -o -q haybarn-unittest.zip -d hb
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HAYBARN_RELEASE: ${{ needs.resolve-haybarn.outputs.release }}
+
+      - name: Resolve runner + worker paths
+        run: |
+          # Absolute paths: run-integration.sh cd's into a staging dir before
+          # invoking the runner, so relative paths would not resolve. The worker
+          # runs from the synced .venv (deps resolved from PyPI via the lockfile);
+          # plain `.venv/bin/python` ignores the PEP 723 header. run-integration.sh
+          # starts the mock MediaWiki server and bakes its URL into the command.
+          UNITTEST="$PWD/$(find hb -name 'haybarn-unittest' -type f | head -1)"
+          chmod +x "$UNITTEST"
+          echo "HAYBARN_UNITTEST=$UNITTEST" >> "$GITHUB_ENV"
+          echo "VGI_WIKIPEDIA_WORKER=$PWD/.venv/bin/python $PWD/wikipedia_worker.py" >> "$GITHUB_ENV"
+
+      - name: Run extension integration suite
+        run: ci/run-integration.sh
