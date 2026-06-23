@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="docs/vgi-logo.png" alt="Vector Gateway Interface (VGI)" width="320">
+</p>
+
+<p align="center"><em>A <a href="https://query.farm">Query.Farm</a> VGI worker for DuckDB.</em></p>
+
 # vgi-wikipedia
 
 A [VGI](https://github.com/query-farm/vgi-python) worker that brings
@@ -160,3 +166,12 @@ round-trip across a batch boundary, plain-text snippets, and a clean error path.
 - **Retrieved content:** **CC-BY-SA** (Wikipedia/Wikimedia) — attribution &
   share-alike are the **user's** responsibility (see the warning at the top).
 - **Dependencies:** permissive (`httpx`, `pyarrow`, `vgi-python`).
+
+---
+
+## Authorship & License
+
+Written by [Query.Farm](https://query.farm) — every VGI worker is designed and built by Query.Farm.
+
+Copyright 2026 Query Farm LLC - https://query.farm
+
