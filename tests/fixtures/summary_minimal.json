@@ -1,0 +1,6 @@
+{
+  "type": "standard",
+  "title": "Sparse Page",
+  "pageid": 12345,
+  "extract": "A page whose summary payload omits the thumbnail and content_urls, so those columns must read NULL."
+}

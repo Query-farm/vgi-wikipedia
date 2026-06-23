@@ -1,0 +1,39 @@
+{
+  "batchcomplete": true,
+  "continue": {
+    "sroffset": 3,
+    "continue": "-||"
+  },
+  "query": {
+    "searchinfo": {
+      "totalhits": 1234
+    },
+    "search": [
+      {
+        "ns": 0,
+        "title": "Apache Arrow",
+        "pageid": 49371158,
+        "size": 24680,
+        "wordcount": 2456,
+        "snippet": "Apache <span class=\"searchmatch\">Arrow</span> is a language-agnostic software framework for developing data analytics applications that process <b>columnar</b> data.",
+        "timestamp": "2024-11-02T10:00:00Z"
+      },
+      {
+        "ns": 0,
+        "title": "Apache Parquet",
+        "pageid": 44432600,
+        "size": 12345,
+        "wordcount": 987,
+        "snippet": "Apache Parquet is a free and open-source column-oriented data storage format. It is compatible with most data processing frameworks, including Apache <span class=\"searchmatch\">Arrow</span> &amp; Spark.",
+        "timestamp": "2024-10-15T08:30:00Z"
+      },
+      {
+        "ns": 0,
+        "title": "Columnar database",
+        "pageid": 13877946,
+        "wordcount": 543,
+        "snippet": "A columnar database stores data by columns rather than by rows."
+      }
+    ]
+  }
+}

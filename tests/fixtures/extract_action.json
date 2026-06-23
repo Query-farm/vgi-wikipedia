@@ -1,0 +1,20 @@
+{
+  "batchcomplete": true,
+  "query": {
+    "pages": [
+      {
+        "pageid": 66475209,
+        "ns": 0,
+        "title": "DuckDB",
+        "extract": "DuckDB is an open-source column-oriented relational database management system (RDBMS).",
+        "fullurl": "https://en.wikipedia.org/wiki/DuckDB",
+        "canonicalurl": "https://en.wikipedia.org/wiki/DuckDB",
+        "thumbnail": {
+          "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/DuckDB_logo.svg/320px-DuckDB_logo.svg.png",
+          "width": 320,
+          "height": 320
+        }
+      }
+    ]
+  }
+}

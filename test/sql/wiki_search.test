@@ -1,0 +1,139 @@
+# name: test/sql/wiki_search.test
+# description: wiki_search table function — unified schema, plain-text snippets, sroffset paging
+# group: [vgi_wikipedia]
+#
+# Driven against a local MOCK MediaWiki server (no live Wikipedia): the worker's
+# VGI_WIKIPEDIA_API_URL is pointed at the mock by the test-sql launcher, which
+# serves captured fixtures. search_page1 carries continue.sroffset=3 ->
+# search_page2 (no continue), so max_pages := 2 returns 5 rows that span the
+# sroffset page boundary AND the worker's emit-chunk batch boundary.
+
+require-env VGI_WIKIPEDIA_WORKER
+
+# Under haybarn-unittest, `require vgi` SKIPS the file; load the extension
+# explicitly instead so these tests actually run.
+statement ok
+LOAD vgi;
+
+# extra is VARCHAR(JSON); the json extension powers the ->> extraction below.
+statement ok
+INSTALL json;
+
+statement ok
+LOAD json;
+
+statement ok
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '${VGI_WIKIPEDIA_WORKER}');
+
+# ============================================================================
+# Catalog discovery
+# ============================================================================
+
+query II
+SELECT catalog_name, schema_name FROM information_schema.schemata WHERE catalog_name = 'wiki';
+----
+wiki	main
+
+# ============================================================================
+# Unified output schema is exactly (title, snippet, pageid, wordcount, url, lang, extra)
+# ============================================================================
+
+query I
+SELECT column_name FROM (DESCRIBE
+  SELECT * FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10));
+----
+title
+snippet
+pageid
+wordcount
+url
+lang
+extra
+
+# ============================================================================
+# Single page (max_pages default 1): the 3 rows of search_page1, in order.
+# ============================================================================
+
+query II
+SELECT title, pageid
+FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10)
+ORDER BY pageid DESC;
+----
+Apache Arrow	49371158
+Apache Parquet	44432600
+Columnar database	13877946
+
+# ---- snippets are PLAIN TEXT (no HTML tags survive the strip) ----
+query I
+SELECT bool_and(snippet NOT LIKE '%<%' AND snippet NOT LIKE '%>%')
+FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10);
+----
+true
+
+# The first snippet is the unescaped, tag-free text.
+query I
+SELECT snippet FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10)
+WHERE title = 'Apache Arrow';
+----
+Apache Arrow is a language-agnostic software framework for developing data analytics applications that process columnar data.
+
+# ---- url + lang columns ----
+query II
+SELECT url, lang FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10)
+WHERE title = 'Apache Arrow';
+----
+https://en.wikipedia.org/wiki/Apache_Arrow	en
+
+# ---- extra JSON: timestamp + size present on row 1, NULL where absent ----
+# extra is VARCHAR(JSON); cast to JSON before extracting with ->>.
+query I
+SELECT (extra::JSON)->>'timestamp' FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10)
+WHERE title = 'Apache Arrow';
+----
+2024-11-02T10:00:00Z
+
+query I
+SELECT extra FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10)
+WHERE title = 'Columnar database';
+----
+NULL
+
+# ============================================================================
+# Pagination: the sroffset scan-state ROUND-TRIPS across a batch boundary.
+# max_pages := 2 follows continue.sroffset=3 into search_page2, returning all 5
+# rows across both the sroffset page boundary and the 5-row emit-chunk boundary.
+# ============================================================================
+
+query I
+SELECT count(*) FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10, max_pages := 2);
+----
+5
+
+# All 5 titles across the two pages (ordered by pageid for a deterministic
+# comparison; the page-boundary crossing is asserted explicitly below).
+query I
+SELECT title FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10, max_pages := 2)
+ORDER BY pageid DESC;
+----
+DuckDB
+Apache Arrow
+Apache Parquet
+Data lake
+Columnar database
+
+# The page-2-only title (DuckDB) is reachable ONLY by following sroffset — proof
+# the continuation cursor survived the page boundary.
+query I
+SELECT count(*) FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10, max_pages := 2)
+WHERE title = 'DuckDB';
+----
+1
+
+# max_pages := 1 stops after page 1 even though a continuation token exists.
+query I
+SELECT count(*) FROM wiki.wiki_search('apache arrow', lang := 'en', count := 10, max_pages := 1);
+----
+3
+
+statement ok
+DETACH wiki;

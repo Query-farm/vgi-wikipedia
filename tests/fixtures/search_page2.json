@@ -1,0 +1,28 @@
+{
+  "batchcomplete": true,
+  "query": {
+    "searchinfo": {
+      "totalhits": 1234
+    },
+    "search": [
+      {
+        "ns": 0,
+        "title": "Data lake",
+        "pageid": 43912769,
+        "size": 9876,
+        "wordcount": 765,
+        "snippet": "A data lake is a system or repository of data stored in its natural format.",
+        "timestamp": "2024-09-01T12:00:00Z"
+      },
+      {
+        "ns": 0,
+        "title": "DuckDB",
+        "pageid": 66475209,
+        "size": 5432,
+        "wordcount": 432,
+        "snippet": "DuckDB is an open-source column-oriented relational database management system that uses Apache <span class=\"searchmatch\">Arrow</span> internally.",
+        "timestamp": "2024-12-20T18:45:00Z"
+      }
+    ]
+  }
+}

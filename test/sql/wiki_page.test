@@ -1,0 +1,74 @@
+# name: test/sql/wiki_page.test
+# description: wiki_page scalar + wiki_page_summary table function, against the mock server
+# group: [vgi_wikipedia]
+#
+# Driven against the local MOCK MediaWiki server (VGI_WIKIPEDIA_API_URL set by the
+# launcher). The mock serves the REST summary for 'DuckDB' and a 404 (-> missing)
+# for unknown titles.
+
+require-env VGI_WIKIPEDIA_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '${VGI_WIKIPEDIA_WORKER}');
+
+# ============================================================================
+# wiki_page scalar (positional-only): returns the summary extract VARCHAR.
+# ============================================================================
+
+query I
+SELECT wiki.wiki_page('DuckDB') LIKE 'DuckDB is an open-source%';
+----
+true
+
+# A missing page -> NULL (never an error).
+query I
+SELECT wiki.wiki_page('Nonexistent Page Zzzz Qqq') IS NULL;
+----
+true
+
+# NULL / empty input -> NULL.
+query I
+SELECT wiki.wiki_page(NULL) IS NULL;
+----
+true
+
+query I
+SELECT wiki.wiki_page('') IS NULL;
+----
+true
+
+# Two-arg overload (explicit language) still resolves the page.
+query I
+SELECT wiki.wiki_page('DuckDB', 'en') LIKE 'DuckDB is%';
+----
+true
+
+# ============================================================================
+# wiki_page_summary table function: the rich multi-column row.
+# ============================================================================
+
+query I
+SELECT column_name FROM (DESCRIBE SELECT * FROM wiki.wiki_page_summary('DuckDB', lang := 'en'));
+----
+title
+extract
+url
+thumbnail_url
+pageid
+
+query III
+SELECT title, url, pageid FROM wiki.wiki_page_summary('DuckDB', lang := 'en');
+----
+DuckDB	https://en.wikipedia.org/wiki/DuckDB	66475209
+
+# A missing page yields ZERO rows (not an error).
+query I
+SELECT count(*) FROM wiki.wiki_page_summary('Nonexistent Page Zzzz Qqq', lang := 'en');
+----
+0
+
+statement ok
+DETACH wiki;
