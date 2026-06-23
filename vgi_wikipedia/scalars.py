@@ -58,6 +58,8 @@ class WikiPageDefault(ScalarFunction):
     """``wiki_page(title)`` -- English Wikipedia summary extract."""
 
     class Meta:
+        """Function metadata."""
+
         name = "wiki_page"
         description = "Plain-text summary extract of an English Wikipedia page (NULL if missing)"
         categories = ["wikipedia", "mediawiki", "rag"]
@@ -73,6 +75,7 @@ class WikiPageDefault(ScalarFunction):
         cls,
         title: Annotated[pa.StringArray, Param(doc="Page title to fetch.")],
     ) -> Annotated[pa.StringArray, Returns()]:
+        """Fetch each title's English summary extract."""
         return _extracts(title, "en")
 
 
@@ -80,6 +83,8 @@ class WikiPage(ScalarFunction):
     """``wiki_page(title, lang)`` -- summary extract from a chosen-language wiki."""
 
     class Meta:
+        """Function metadata."""
+
         name = "wiki_page"
         description = "Plain-text summary extract of a Wikipedia page in a given language (NULL if missing)"
         categories = ["wikipedia", "mediawiki", "rag"]
@@ -96,6 +101,7 @@ class WikiPage(ScalarFunction):
         title: Annotated[pa.StringArray, Param(doc="Page title to fetch.")],
         lang: Annotated[str, ConstParam("Wiki language code, e.g. 'en' or 'de'.")],
     ) -> Annotated[pa.StringArray, Returns()]:
+        """Fetch each title's summary extract from the chosen-language wiki."""
         return _extracts(title, lang or "en")
 
 

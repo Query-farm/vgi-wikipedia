@@ -90,6 +90,7 @@ class WikiClient:
         timeout: float = DEFAULT_TIMEOUT,
         client: httpx.Client | None = None,
     ) -> None:
+        """Configure the API URL template, per-call timeout, and optional httpx client."""
         self.api_url_template = api_url or default_api_url()
         self.timeout = timeout
         self._client = client

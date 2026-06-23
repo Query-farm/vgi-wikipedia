@@ -174,6 +174,8 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
     FunctionArguments: ClassVar[type] = WikiSearchArgs
 
     class Meta:
+        """Function metadata."""
+
         name = "wiki_search"
         description = "Full-text search over Wikipedia (or any MediaWiki); returns the unified schema"
         categories = ["search", "wikipedia", "mediawiki", "rag", "retrieval"]
@@ -190,6 +192,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
 
     @classmethod
     def on_bind(cls, params: BindParams[WikiSearchArgs]) -> BindResponse:
+        """Validate the query and bind the fixed output schema."""
         a = params.args
         if not (a.query or "").strip():
             raise ValueError("wiki_search requires a non-empty query")
@@ -197,6 +200,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
 
     @classmethod
     def on_init(cls, params: object) -> GlobalInitResponse:
+        """Pin a single scan worker so sequential sroffset paging emits the result once."""
         # Paging is inherently sequential (each page's sroffset comes from the
         # previous response), and the result set must be produced exactly once.
         # Pin to a single scan worker so parallel scan instances don't each
@@ -205,6 +209,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
 
     @classmethod
     def initial_state(cls, params: ProcessParams[WikiSearchArgs]) -> ScanState:
+        """Start at the first sroffset page with a fresh scan state."""
         return ScanState()
 
     @classmethod
@@ -251,6 +256,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
         state: ScanState,
         out: OutputCollector,
     ) -> None:
+        """Emit the next chunk of search rows, advancing sroffset paging as needed."""
         # The framework requires every non-finishing tick to emit a batch, so we
         # loop internally across empty/exhausted pages until we either emit a
         # chunk or finish -- never returning empty-handed without finishing.

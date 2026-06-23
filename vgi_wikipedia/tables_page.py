@@ -61,6 +61,8 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
     FunctionArguments: ClassVar[type] = WikiPageArgs
 
     class Meta:
+        """Function metadata."""
+
         name = "wiki_page_summary"
         description = "Page summary as a row: title, extract, url, thumbnail_url, pageid"
         categories = ["wikipedia", "mediawiki", "rag", "retrieval"]
@@ -73,21 +75,25 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
 
     @classmethod
     def on_bind(cls, params: BindParams[WikiPageArgs]) -> BindResponse:
+        """Validate the title and bind the fixed output schema."""
         if not (params.args.title or "").strip():
             raise ValueError("wiki_page_summary requires a non-empty title")
         return BindResponse(output_schema=WIKI_PAGE_SCHEMA)
 
     @classmethod
     def on_init(cls, params: object) -> GlobalInitResponse:
+        """Pin a single scan worker so the one summary row is emitted exactly once."""
         # A single summary row must be produced exactly once.
         return GlobalInitResponse(max_workers=1)
 
     @classmethod
     def cardinality(cls, params: BindParams[WikiPageArgs]) -> TableCardinality:
+        """Report the exact one-row cardinality."""
         return TableCardinality(estimate=1, max=1)
 
     @classmethod
     def initial_state(cls, params: ProcessParams[WikiPageArgs]) -> None:
+        """Start with no scan state (a single row needs none)."""
         return None
 
     @classmethod
@@ -97,6 +103,7 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
         state: None,
         out: OutputCollector,
     ) -> None:
+        """Fetch the page summary and emit it as a single row."""
         a = params.args
         client = WikiClient(api_url=a.api_url or None)
         try:
