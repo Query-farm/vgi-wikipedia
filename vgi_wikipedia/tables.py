@@ -48,8 +48,85 @@ from vgi_rpc import ArrowSerializableDataclass
 from vgi_rpc.rpc import OutputCollector
 
 from vgi_wikipedia.client import WikiClient, WikiError
+from vgi_wikipedia.meta import object_tags
 from vgi_wikipedia.parse import SearchRow, parse_search
 from vgi_wikipedia.schema_utils import field
+
+_WIKI_SEARCH_DOC_LLM = (
+    "Run a **full-text search** over Wikipedia (or any MediaWiki) and stream back ranked "
+    "article results, one row per hit.\n\n"
+    "Call it as a table function: "
+    "`wiki.main.wiki_search(query, lang := 'en', count := 10, max_pages := 1, "
+    "api_url := '')`. Because it is a table function, the options are `name :=` named "
+    "arguments: `lang` picks the language wiki, `count` is results per API page (1-50), "
+    "`max_pages` bounds how many continuation (`sroffset`) pages to follow (1-20), and "
+    "`api_url` targets a non-Wikimedia wiki's api.php.\n\n"
+    "Use it for retrieval-augmented generation (RAG), candidate-document retrieval, "
+    "fact lookup, and turning a topic into a ranked set of article titles and snippets "
+    "you can then feed to `wiki_page` / `wiki_page_summary` or to vgi-embed / vgi-rerank.\n\n"
+    "**Returns** the unified search schema: `title`, `snippet` (HTML stripped to plain "
+    "text), `pageid`, `wordcount`, `url`, `lang`, and `extra` (a JSON VARCHAR of "
+    "timestamp/size, NULL when absent).\n\n"
+    "**Edge cases:** an empty query is rejected at bind time. Paging is sequential "
+    "(each page's `sroffset` comes from the previous response) and pinned to a single "
+    "scan worker so results are emitted exactly once. A transport failure surfaces as a "
+    "clean DuckDB error. Retrieved text is **CC-BY-SA**: attribution and share-alike are "
+    "the caller's responsibility."
+)
+
+_WIKI_SEARCH_DOC_MD = (
+    "# wiki_search\n\n"
+    "Full-text search over Wikipedia / any MediaWiki, returning ranked results as a "
+    "table, over the free MediaWiki Action API (`action=query&list=search`).\n\n"
+    "## Usage\n\n"
+    "```sql\n"
+    "SELECT title, snippet, url\n"
+    "  FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);\n\n"
+    "-- follow several sroffset pages of results\n"
+    "SELECT title\n"
+    "  FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3);\n"
+    "```\n\n"
+    "## Arguments\n\n"
+    "- `query` (positional) -- the full-text search string.\n"
+    "- `lang :=` -- wiki language code (default `'en'`).\n"
+    "- `count :=` -- results per API page, 1-50 (default 10).\n"
+    "- `max_pages :=` -- max `sroffset` pages to follow, 1-20 (default 1).\n"
+    "- `api_url :=` -- override the MediaWiki api.php URL (default Wikipedia).\n\n"
+    "## Notes\n\n"
+    "- Snippets are HTML-stripped to plain text; `extra` is a JSON string (use the "
+    "`json` extension's `->>`).\n"
+    "- Paging is sequential and emitted exactly once (pinned to one scan worker).\n"
+    "- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your "
+    "responsibility."
+)
+
+_WIKI_SEARCH_KEYWORDS = (
+    "wikipedia, mediawiki, wiki_search, full-text search, search, query, ranked results, "
+    "snippet, article, encyclopedia, rag, retrieval, knowledge grounding, pagination, "
+    "sroffset, lang, language"
+)
+
+_WIKI_SEARCH_RESULT_COLUMNS_MD = (
+    "| Column | Type | Description |\n"
+    "| --- | --- | --- |\n"
+    "| `title` | VARCHAR | Article title. |\n"
+    "| `snippet` | VARCHAR | Search-result excerpt, HTML stripped to plain text. |\n"
+    "| `pageid` | BIGINT | MediaWiki page id. |\n"
+    "| `wordcount` | INTEGER | Word count of the article. |\n"
+    "| `url` | VARCHAR | Canonical article URL. |\n"
+    "| `lang` | VARCHAR | Wiki language code the result came from. |\n"
+    "| `extra` | VARCHAR | Extra fields (timestamp, size), JSON-encoded (else NULL). |"
+)
+
+# VGI509: guaranteed-runnable, catalog-qualified examples (expected_result omitted
+# on purpose -- live results drift, the linter only needs them to execute).
+_WIKI_SEARCH_EXECUTABLE_EXAMPLES = (
+    '[{"description": "Top-5 English results for \'apache arrow\'.", '
+    '"sql": "SELECT title, url FROM wiki.main.wiki_search(\'apache arrow\', '
+    "lang := 'en', count := 5)\"}, "
+    '{"description": "Count the rows returned for a query.", '
+    '"sql": "SELECT count(*) AS n FROM wiki.main.wiki_search(\'duckdb\', count := 5)"}]'
+)
 
 # Rows emitted per process tick. Deliberately small so a single API page (up to
 # 50 hits) spans several batches -- exercising the scan-state round-trip across
@@ -180,25 +257,23 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
         description = "Full-text search over Wikipedia (or any MediaWiki); returns the unified schema"
         categories = ["search", "wikipedia", "mediawiki", "rag", "retrieval"]
         tags = {
-            "vgi.columns_md": (
-                "| Column | Type | Description |\n"
-                "| --- | --- | --- |\n"
-                "| `title` | VARCHAR | Article title. |\n"
-                "| `snippet` | VARCHAR | Search-result excerpt, HTML stripped to plain text. |\n"
-                "| `pageid` | BIGINT | MediaWiki page id. |\n"
-                "| `wordcount` | INTEGER | Word count of the article. |\n"
-                "| `url` | VARCHAR | Canonical article URL. |\n"
-                "| `lang` | VARCHAR | Wiki language code the result came from. |\n"
-                "| `extra` | VARCHAR | Extra fields (timestamp, size), JSON-encoded (else NULL). |"
+            **object_tags(
+                title="Wikipedia Full-Text Search",
+                doc_llm=_WIKI_SEARCH_DOC_LLM,
+                doc_md=_WIKI_SEARCH_DOC_MD,
+                keywords=_WIKI_SEARCH_KEYWORDS,
+                relative_path="vgi_wikipedia/tables.py",
             ),
+            "vgi.result_columns_md": _WIKI_SEARCH_RESULT_COLUMNS_MD,
+            "vgi.executable_examples": _WIKI_SEARCH_EXECUTABLE_EXAMPLES,
         }
         examples = [
             FunctionExample(
-                sql="SELECT title, snippet, url FROM wiki_search('apache arrow', lang := 'en', count := 10)",
+                sql="SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10)",
                 description="Top-10 English Wikipedia results for 'apache arrow'",
             ),
             FunctionExample(
-                sql="SELECT title FROM wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)",
+                sql="SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)",
                 description="Follow up to 3 sroffset pages of German results",
             ),
         ]

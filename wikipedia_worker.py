@@ -73,19 +73,49 @@ _CATALOG_DESCRIPTION_MD = (
 
 _SCHEMA_DESCRIPTION_LLM = (
     "Wikipedia / MediaWiki search and page-retrieval functions: full-text search returning "
-    "ranked titles, snippets, page ids, word counts and URLs (wiki_search); a scalar that returns "
-    "a page's plain-text summary extract (wiki_page); and a table function returning a page's rich "
-    "summary row (wiki_page_summary). Language-selectable; usable against any MediaWiki wiki."
+    "ranked titles, snippets, page ids, word counts and URLs (`wiki_search`); a scalar that "
+    "returns a page's plain-text summary extract (`wiki_page`); and a table function returning a "
+    "page's rich summary row (`wiki_page_summary`). All run over the free official MediaWiki "
+    "Action API + REST summary endpoint (no key). Language-selectable via `lang` and usable "
+    "against any MediaWiki wiki via `api_url`. Use it for RAG, knowledge grounding, and fact "
+    "lookup. Retrieved text is CC-BY-SA -- attribution and share-alike are the caller's "
+    "responsibility."
 )
 
 _SCHEMA_DESCRIPTION_MD = (
-    "Wikipedia / MediaWiki full-text search and page-summary retrieval functions "
-    "(`wiki_search`, `wiki_page`, `wiki_page_summary`) over the free MediaWiki API."
+    "# wiki.main\n\n"
+    "Wikipedia / MediaWiki full-text search and page-summary retrieval functions over the free "
+    "MediaWiki API.\n\n"
+    "- `wiki_search(query, lang :=, count :=, max_pages :=, api_url :=)` -- ranked full-text "
+    "results (table function).\n"
+    "- `wiki_page(title[, lang])` -- a page's plain-text summary extract (scalar).\n"
+    "- `wiki_page_summary(title, lang :=, api_url :=)` -- a page's rich summary row "
+    "(table function).\n\n"
+    "Retrieved content is **CC-BY-SA**; attribution and share-alike are the caller's "
+    "responsibility."
+)
+
+_SCHEMA_EXAMPLE_QUERIES = (
+    "SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);\n"
+    "SELECT wiki.main.wiki_page('DuckDB');\n"
+    "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');"
+)
+
+_CATALOG_KEYWORDS = (
+    "wikipedia, mediawiki, wiki, search, full-text search, page, summary, extract, article, "
+    "encyclopedia, rag, retrieval, knowledge grounding, fact lookup, egress connector"
+)
+
+_SCHEMA_KEYWORDS = (
+    "wikipedia, mediawiki, wiki_search, wiki_page, wiki_page_summary, search, page summary, "
+    "extract, article, encyclopedia, rag, retrieval, knowledge grounding, lang, language"
 )
 
 _CATALOG_TAGS = {
-    "vgi.description_llm": _CATALOG_DESCRIPTION_LLM,
-    "vgi.description_md": _CATALOG_DESCRIPTION_MD,
+    "vgi.title": "Wikipedia / MediaWiki Search & Page Retrieval",
+    "vgi.keywords": _CATALOG_KEYWORDS,
+    "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
+    "vgi.doc_md": _CATALOG_DESCRIPTION_MD,
     "vgi.author": "Query.Farm",
     "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
     "vgi.license": "MIT",
@@ -104,8 +134,16 @@ _WIKI_CATALOG = Catalog(
             name="main",
             comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG",
             tags={
-                "vgi.description_llm": _SCHEMA_DESCRIPTION_LLM,
-                "vgi.description_md": _SCHEMA_DESCRIPTION_MD,
+                "vgi.title": "Wikipedia / MediaWiki Functions",
+                "vgi.keywords": _SCHEMA_KEYWORDS,
+                "vgi.doc_llm": _SCHEMA_DESCRIPTION_LLM,
+                "vgi.doc_md": _SCHEMA_DESCRIPTION_MD,
+                "vgi.source_url": "https://github.com/Query-farm/vgi-wikipedia/blob/main/wikipedia_worker.py",
+                "vgi.example_queries": _SCHEMA_EXAMPLE_QUERIES,
+                # VGI123 classifying tags -- BARE keys (not vgi.-namespaced).
+                "domain": "knowledge",
+                "category": "search",
+                "topic": "wikipedia-retrieval",
             },
             functions=[*SCALAR_FUNCTIONS, *TABLE_FUNCTIONS, *PAGE_TABLE_FUNCTIONS],
         ),

@@ -29,8 +29,77 @@ from vgi.table_function import (
 from vgi_rpc.rpc import OutputCollector
 
 from vgi_wikipedia.client import WikiClient, WikiError
+from vgi_wikipedia.meta import object_tags
 from vgi_wikipedia.parse import parse_summary
 from vgi_wikipedia.schema_utils import field
+
+_WIKI_PAGE_SUMMARY_DOC_LLM = (
+    "Fetch the **rich, multi-column page summary** of a single Wikipedia (or any "
+    "MediaWiki) article as a one-row table.\n\n"
+    "Call it as a table function: "
+    "`wiki.main.wiki_page_summary(title, lang := 'en', api_url := '')`. Being a table "
+    "function, `lang` and `api_url` are `name :=` named arguments: `lang` picks the "
+    "language wiki and `api_url` targets a non-Wikimedia wiki's api.php.\n\n"
+    "Use it when you need more than just the extract text -- the canonical URL (for "
+    "attribution / linking back), a thumbnail image, and the page id -- e.g. when "
+    "enriching rows for retrieval-augmented generation (RAG), knowledge cards, or "
+    "fact lookup. For just the extract text as a scalar over a whole column of titles, "
+    "use the `wiki_page` scalar instead.\n\n"
+    "**Returns** one row with columns `title` (resolved), `extract` (plain-text "
+    "summary), `url`, `thumbnail_url` (may be NULL), and `pageid`.\n\n"
+    "**Edge cases:** an empty title is rejected at bind time. A missing page yields "
+    "**zero rows** (not an error). A transport failure surfaces as a clean DuckDB "
+    "error. Retrieved text is **CC-BY-SA**: attribution and share-alike are the "
+    "caller's responsibility."
+)
+
+_WIKI_PAGE_SUMMARY_DOC_MD = (
+    "# wiki_page_summary\n\n"
+    "Returns a single Wikipedia / MediaWiki page's **rich summary** as a one-row "
+    "table -- the multi-column companion to the `wiki_page` scalar -- over the free "
+    "MediaWiki REST summary endpoint.\n\n"
+    "## Usage\n\n"
+    "```sql\n"
+    "SELECT title, extract, url, thumbnail_url, pageid\n"
+    "  FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');\n"
+    "```\n\n"
+    "## Arguments\n\n"
+    "- `title` (positional) -- the page title to fetch.\n"
+    "- `lang :=` -- wiki language code (default `'en'`).\n"
+    "- `api_url :=` -- override the MediaWiki api.php URL (default Wikipedia).\n\n"
+    "## Notes\n\n"
+    "- A missing page returns zero rows; it is not an error.\n"
+    "- `thumbnail_url` may be NULL when the page has no lead image.\n"
+    "- For just the extract over many titles, use the `wiki_page` scalar.\n"
+    "- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your "
+    "responsibility."
+)
+
+_WIKI_PAGE_SUMMARY_KEYWORDS = (
+    "wikipedia, mediawiki, wiki_page_summary, page summary, extract, url, thumbnail, "
+    "pageid, article, encyclopedia, rag, retrieval, knowledge grounding, fact lookup, "
+    "lang, language"
+)
+
+_WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD = (
+    "| Column | Type | Description |\n"
+    "| --- | --- | --- |\n"
+    "| `title` | VARCHAR | Resolved page title. |\n"
+    "| `extract` | VARCHAR | Plain-text summary extract. |\n"
+    "| `url` | VARCHAR | Canonical page URL. |\n"
+    "| `thumbnail_url` | VARCHAR | Thumbnail image URL, if any (else NULL). |\n"
+    "| `pageid` | BIGINT | MediaWiki page id. |"
+)
+
+# VGI509: guaranteed-runnable, catalog-qualified examples (expected_result omitted).
+_WIKI_PAGE_SUMMARY_EXECUTABLE_EXAMPLES = (
+    '[{"description": "Rich English summary row for the DuckDB article.", '
+    '"sql": "SELECT title, url, pageid FROM wiki.main.wiki_page_summary(\'DuckDB\', '
+    "lang := 'en')\"}, "
+    '{"description": "A missing page returns zero rows.", '
+    '"sql": "SELECT count(*) AS n FROM '
+    "wiki.main.wiki_page_summary('ThisPageDoesNotExist_zzz')\"}]"
+)
 
 WIKI_PAGE_SCHEMA = pa.schema(
     [
@@ -67,19 +136,19 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
         description = "Page summary as a row: title, extract, url, thumbnail_url, pageid"
         categories = ["wikipedia", "mediawiki", "rag", "retrieval"]
         tags = {
-            "vgi.columns_md": (
-                "| Column | Type | Description |\n"
-                "| --- | --- | --- |\n"
-                "| `title` | VARCHAR | Resolved page title. |\n"
-                "| `extract` | VARCHAR | Plain-text summary extract. |\n"
-                "| `url` | VARCHAR | Canonical page URL. |\n"
-                "| `thumbnail_url` | VARCHAR | Thumbnail image URL, if any. |\n"
-                "| `pageid` | BIGINT | MediaWiki page id. |"
+            **object_tags(
+                title="Wikipedia Page Summary Row",
+                doc_llm=_WIKI_PAGE_SUMMARY_DOC_LLM,
+                doc_md=_WIKI_PAGE_SUMMARY_DOC_MD,
+                keywords=_WIKI_PAGE_SUMMARY_KEYWORDS,
+                relative_path="vgi_wikipedia/tables_page.py",
             ),
+            "vgi.result_columns_md": _WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD,
+            "vgi.executable_examples": _WIKI_PAGE_SUMMARY_EXECUTABLE_EXAMPLES,
         }
         examples = [
             FunctionExample(
-                sql="SELECT title, extract, url FROM wiki_page_summary('DuckDB', lang := 'en')",
+                sql="SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')",
                 description="The English Wikipedia summary row for DuckDB",
             ),
         ]
