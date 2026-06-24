@@ -66,6 +66,17 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
         name = "wiki_page_summary"
         description = "Page summary as a row: title, extract, url, thumbnail_url, pageid"
         categories = ["wikipedia", "mediawiki", "rag", "retrieval"]
+        tags = {
+            "vgi.columns_md": (
+                "| Column | Type | Description |\n"
+                "| --- | --- | --- |\n"
+                "| `title` | VARCHAR | Resolved page title. |\n"
+                "| `extract` | VARCHAR | Plain-text summary extract. |\n"
+                "| `url` | VARCHAR | Canonical page URL. |\n"
+                "| `thumbnail_url` | VARCHAR | Thumbnail image URL, if any. |\n"
+                "| `pageid` | BIGINT | MediaWiki page id. |"
+            ),
+        }
         examples = [
             FunctionExample(
                 sql="SELECT title, extract, url FROM wiki_page_summary('DuckDB', lang := 'en')",

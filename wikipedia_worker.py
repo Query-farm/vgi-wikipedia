@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http]>=0.8.3",
+#     "vgi-python[http]>=0.8.4",
 #     "httpx>=0.27",
 # ]
 # ///
@@ -45,13 +45,68 @@ from vgi_wikipedia.scalars import SCALAR_FUNCTIONS
 from vgi_wikipedia.tables import TABLE_FUNCTIONS
 from vgi_wikipedia.tables_page import PAGE_TABLE_FUNCTIONS
 
+_CATALOG_DESCRIPTION_LLM = (
+    "Search Wikipedia (or any MediaWiki) and retrieve page summaries from SQL. "
+    "Run full-text searches that return ranked article titles, plain-text snippets, page ids, "
+    "word counts and canonical URLs; fetch a single page's lead-paragraph summary extract; and "
+    "pull a page's rich summary row (title, extract, url, thumbnail, page id). All over the FREE "
+    "official MediaWiki Action API + REST summary endpoint (no API key). Use it for "
+    "retrieval-augmented generation (RAG), knowledge grounding, fact lookup, and enriching rows "
+    "with encyclopedic context. Choose any wiki language via 'lang' and target non-Wikimedia "
+    "wikis via 'api_url'. NOTE: retrieved article text is CC-BY-SA — attribution and share-alike "
+    "are the caller's responsibility."
+)
+
+_CATALOG_DESCRIPTION_MD = (
+    "# wiki\n\n"
+    "Wikipedia / MediaWiki full-text search and page retrieval for SQL and RAG, over the free "
+    "official MediaWiki Action API + REST summary endpoint (no key, no scraping).\n\n"
+    "**Functions**\n\n"
+    "- `wiki_search(query, lang := 'en', count := 10, max_pages := 1, api_url := '')` — table "
+    "function: ranked full-text results.\n"
+    "- `wiki_page(title[, lang])` — scalar: a page's plain-text summary extract.\n"
+    "- `wiki_page_summary(title, lang := 'en', api_url := '')` — table function: the rich "
+    "single-row page summary.\n\n"
+    "Retrieved article **content is CC-BY-SA** — attribution and share-alike are the caller's "
+    "responsibility."
+)
+
+_SCHEMA_DESCRIPTION_LLM = (
+    "Wikipedia / MediaWiki search and page-retrieval functions: full-text search returning "
+    "ranked titles, snippets, page ids, word counts and URLs (wiki_search); a scalar that returns "
+    "a page's plain-text summary extract (wiki_page); and a table function returning a page's rich "
+    "summary row (wiki_page_summary). Language-selectable; usable against any MediaWiki wiki."
+)
+
+_SCHEMA_DESCRIPTION_MD = (
+    "Wikipedia / MediaWiki full-text search and page-summary retrieval functions "
+    "(`wiki_search`, `wiki_page`, `wiki_page_summary`) over the free MediaWiki API."
+)
+
+_CATALOG_TAGS = {
+    "vgi.description_llm": _CATALOG_DESCRIPTION_LLM,
+    "vgi.description_md": _CATALOG_DESCRIPTION_MD,
+    "vgi.author": "Query.Farm",
+    "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
+    "vgi.license": "MIT",
+    "vgi.support_contact": "https://github.com/Query-farm/vgi-wikipedia/issues",
+    "vgi.support_policy_url": "https://github.com/Query-farm/vgi-wikipedia/blob/main/README.md",
+}
+
 _WIKI_CATALOG = Catalog(
     name="wiki",
     default_schema="main",
+    comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG (free MediaWiki API, no key)",
+    tags=_CATALOG_TAGS,
+    source_url="https://github.com/Query-farm/vgi-wikipedia",
     schemas=[
         Schema(
             name="main",
             comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG",
+            tags={
+                "vgi.description_llm": _SCHEMA_DESCRIPTION_LLM,
+                "vgi.description_md": _SCHEMA_DESCRIPTION_MD,
+            },
             functions=[*SCALAR_FUNCTIONS, *TABLE_FUNCTIONS, *PAGE_TABLE_FUNCTIONS],
         ),
     ],

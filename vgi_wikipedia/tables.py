@@ -179,6 +179,19 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
         name = "wiki_search"
         description = "Full-text search over Wikipedia (or any MediaWiki); returns the unified schema"
         categories = ["search", "wikipedia", "mediawiki", "rag", "retrieval"]
+        tags = {
+            "vgi.columns_md": (
+                "| Column | Type | Description |\n"
+                "| --- | --- | --- |\n"
+                "| `title` | VARCHAR | Article title. |\n"
+                "| `snippet` | VARCHAR | Search-result excerpt, HTML stripped to plain text. |\n"
+                "| `pageid` | BIGINT | MediaWiki page id. |\n"
+                "| `wordcount` | INTEGER | Word count of the article. |\n"
+                "| `url` | VARCHAR | Canonical article URL. |\n"
+                "| `lang` | VARCHAR | Wiki language code the result came from. |\n"
+                "| `extra` | VARCHAR | Extra fields (timestamp, size), JSON-encoded (else NULL). |"
+            ),
+        }
         examples = [
             FunctionExample(
                 sql="SELECT title, snippet, url FROM wiki_search('apache arrow', lang := 'en', count := 10)",
