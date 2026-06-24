@@ -90,11 +90,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
   integration:
-    name: End-to-end SQL on ${{ matrix.os }}
+    name: SQL E2E (${{ matrix.transport }}) on ${{ matrix.os }}
     needs: resolve-haybarn
     strategy:
       fail-fast: false
       matrix:
+        # Run the SAME sqllogictest suite over every VGI transport. The vgi
+        # extension picks the transport from the ATTACH LOCATION string that
+        # run-integration.sh builds per $TRANSPORT. The mock MediaWiki server
+        # stays up for ALL THREE transports; VGI_WIKIPEDIA_API_URL is EXPORTED
+        # so both the DuckDB-spawned subprocess worker and the out-of-band
+        # http/unix worker inherit it:
+        #   subprocess : `.venv/bin/python wikipedia_worker.py` (stdio)
+        #   http       : `http://127.0.0.1:<port>`   (worker booted with --http)
+        #   unix       : `unix:///tmp/wiki-<pid>.sock` (worker booted with --unix)
+        os: [ubuntu-latest, macos-latest]
+        transport: [subprocess, http, unix]
         include:
           - { os: ubuntu-latest, asset: haybarn_unittest-linux-amd64.zip }
           - { os: macos-latest,  asset: haybarn_unittest-osx-arm64.zip }
@@ -111,8 +122,10 @@ jobs:
       - name: Set up Python 3.13
         run: uv python install 3.13
 
-      - name: Install the worker (from the lockfile)
-        run: uv sync --frozen --python 3.13
+      - name: Install the worker (from the lockfile, with the http extra)
+        # The `http` extra pulls in waitress so the worker can serve `--http`.
+        # Harmless for the subprocess/unix legs; required for the http leg.
+        run: uv sync --frozen --python 3.13 --extra http
 
       - name: Download haybarn-unittest
         run: |
@@ -131,11 +144,15 @@ jobs:
           # invoking the runner, so relative paths would not resolve. The worker
           # runs from the synced .venv (deps resolved from PyPI via the lockfile);
           # plain `.venv/bin/python` ignores the PEP 723 header. run-integration.sh
-          # starts the mock MediaWiki server and bakes its URL into the command.
+          # starts the mock MediaWiki server and EXPORTS VGI_WIKIPEDIA_API_URL so
+          # every transport's worker inherits it. WORKER_CMD is the stdio command
+          # used directly for subprocess and booted with --http / --unix otherwise.
           UNITTEST="$PWD/$(find hb -name 'haybarn-unittest' -type f | head -1)"
           chmod +x "$UNITTEST"
           echo "HAYBARN_UNITTEST=$UNITTEST" >> "$GITHUB_ENV"
-          echo "VGI_WIKIPEDIA_WORKER=$PWD/.venv/bin/python $PWD/wikipedia_worker.py" >> "$GITHUB_ENV"
+          echo "WORKER_CMD=$PWD/.venv/bin/python $PWD/wikipedia_worker.py" >> "$GITHUB_ENV"
 
-      - name: Run extension integration suite
+      - name: Run extension integration suite (${{ matrix.transport }})
         run: ci/run-integration.sh
+        env:
+          TRANSPORT: ${{ matrix.transport }}
