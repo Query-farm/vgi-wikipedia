@@ -75,11 +75,24 @@ _WIKI_PAGE_SUMMARY_DOC_MD = (
     "responsibility."
 )
 
-_WIKI_PAGE_SUMMARY_KEYWORDS = (
-    "wikipedia, mediawiki, wiki_page_summary, page summary, extract, url, thumbnail, "
-    "pageid, article, encyclopedia, rag, retrieval, knowledge grounding, fact lookup, "
-    "lang, language"
-)
+_WIKI_PAGE_SUMMARY_KEYWORDS = [
+    "wikipedia",
+    "mediawiki",
+    "wiki_page_summary",
+    "page summary",
+    "extract",
+    "url",
+    "thumbnail",
+    "pageid",
+    "article",
+    "encyclopedia",
+    "rag",
+    "retrieval",
+    "knowledge grounding",
+    "fact lookup",
+    "lang",
+    "language",
+]
 
 _WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD = (
     "| Column | Type | Description |\n"

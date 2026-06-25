@@ -75,10 +75,23 @@ _WIKI_PAGE_DOC_MD = (
     "responsibility."
 )
 
-_WIKI_PAGE_KEYWORDS = (
-    "wikipedia, mediawiki, wiki_page, page summary, extract, lead paragraph, article, "
-    "encyclopedia, rag, knowledge grounding, fact lookup, lookup, scalar, lang, language"
-)
+_WIKI_PAGE_KEYWORDS = [
+    "wikipedia",
+    "mediawiki",
+    "wiki_page",
+    "page summary",
+    "extract",
+    "lead paragraph",
+    "article",
+    "encyclopedia",
+    "rag",
+    "knowledge grounding",
+    "fact lookup",
+    "lookup",
+    "scalar",
+    "lang",
+    "language",
+]
 
 _WIKI_PAGE_TAGS = object_tags(
     title="Wikipedia Page Summary Extract",

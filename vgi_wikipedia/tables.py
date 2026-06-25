@@ -100,11 +100,25 @@ _WIKI_SEARCH_DOC_MD = (
     "responsibility."
 )
 
-_WIKI_SEARCH_KEYWORDS = (
-    "wikipedia, mediawiki, wiki_search, full-text search, search, query, ranked results, "
-    "snippet, article, encyclopedia, rag, retrieval, knowledge grounding, pagination, "
-    "sroffset, lang, language"
-)
+_WIKI_SEARCH_KEYWORDS = [
+    "wikipedia",
+    "mediawiki",
+    "wiki_search",
+    "full-text search",
+    "search",
+    "query",
+    "ranked results",
+    "snippet",
+    "article",
+    "encyclopedia",
+    "rag",
+    "retrieval",
+    "knowledge grounding",
+    "pagination",
+    "sroffset",
+    "lang",
+    "language",
+]
 
 _WIKI_SEARCH_RESULT_COLUMNS_MD = (
     "| Column | Type | Description |\n"

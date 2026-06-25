@@ -96,6 +96,7 @@ jobs:
         with:
           location: "uv run wikipedia_worker.py"
           fail-on: info
+          version: "0.37.0"
 
   # Resolve the latest published haybarn release once, so the whole matrix tests
   # the same version (and we never hardcode/pin it).

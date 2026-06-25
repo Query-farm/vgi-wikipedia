@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http]>=0.8.4",
+#     "vgi-python[http]>=0.8.5",
 #     "httpx>=0.27",
 # ]
 # ///
@@ -41,6 +41,7 @@ from __future__ import annotations
 from vgi import Worker
 from vgi.catalog import Catalog, Schema
 
+from vgi_wikipedia.meta import keywords_json
 from vgi_wikipedia.scalars import SCALAR_FUNCTIONS
 from vgi_wikipedia.tables import TABLE_FUNCTIONS
 from vgi_wikipedia.tables_page import PAGE_TABLE_FUNCTIONS
@@ -101,19 +102,45 @@ _SCHEMA_EXAMPLE_QUERIES = (
     "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');"
 )
 
-_CATALOG_KEYWORDS = (
-    "wikipedia, mediawiki, wiki, search, full-text search, page, summary, extract, article, "
-    "encyclopedia, rag, retrieval, knowledge grounding, fact lookup, egress connector"
-)
+_CATALOG_KEYWORDS = [
+    "wikipedia",
+    "mediawiki",
+    "wiki",
+    "search",
+    "full-text search",
+    "page",
+    "summary",
+    "extract",
+    "article",
+    "encyclopedia",
+    "rag",
+    "retrieval",
+    "knowledge grounding",
+    "fact lookup",
+    "egress connector",
+]
 
-_SCHEMA_KEYWORDS = (
-    "wikipedia, mediawiki, wiki_search, wiki_page, wiki_page_summary, search, page summary, "
-    "extract, article, encyclopedia, rag, retrieval, knowledge grounding, lang, language"
-)
+_SCHEMA_KEYWORDS = [
+    "wikipedia",
+    "mediawiki",
+    "wiki_search",
+    "wiki_page",
+    "wiki_page_summary",
+    "search",
+    "page summary",
+    "extract",
+    "article",
+    "encyclopedia",
+    "rag",
+    "retrieval",
+    "knowledge grounding",
+    "lang",
+    "language",
+]
 
 _CATALOG_TAGS = {
     "vgi.title": "Wikipedia / MediaWiki Search & Page Retrieval",
-    "vgi.keywords": _CATALOG_KEYWORDS,
+    "vgi.keywords": keywords_json(_CATALOG_KEYWORDS),
     "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
     "vgi.doc_md": _CATALOG_DESCRIPTION_MD,
     "vgi.author": "Query.Farm",
@@ -135,10 +162,10 @@ _WIKI_CATALOG = Catalog(
             comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG",
             tags={
                 "vgi.title": "Wikipedia / MediaWiki Functions",
-                "vgi.keywords": _SCHEMA_KEYWORDS,
+                "vgi.keywords": keywords_json(_SCHEMA_KEYWORDS),
                 "vgi.doc_llm": _SCHEMA_DESCRIPTION_LLM,
                 "vgi.doc_md": _SCHEMA_DESCRIPTION_MD,
-                "vgi.source_url": "https://github.com/Query-farm/vgi-wikipedia/blob/main/wikipedia_worker.py",
+                # VGI139: source_url is kept on the catalog object only.
                 "vgi.example_queries": _SCHEMA_EXAMPLE_QUERIES,
                 # VGI123 classifying tags -- BARE keys (not vgi.-namespaced).
                 "domain": "knowledge",
