@@ -60,6 +60,7 @@ _CATALOG_DESCRIPTION_LLM = (
 
 _CATALOG_DESCRIPTION_MD = (
     "# Wikipedia & MediaWiki Search in SQL\n\n"
+    "![MediaWiki logo](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/MediaWiki-2020-logo.svg/250px-MediaWiki-2020-logo.svg.png)\n\n"
     "Run Wikipedia full-text search and page-summary retrieval directly from DuckDB SQL — "
     "powered by the free, official MediaWiki API, with no API key, no scraping, and no setup.\n\n"
     "This VGI extension turns any DuckDB session into a live Wikipedia and MediaWiki client. "
