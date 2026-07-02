@@ -38,6 +38,8 @@ responsibility. See README.md.
 
 from __future__ import annotations
 
+import json
+
 from vgi import Worker
 from vgi.catalog import Catalog, Schema
 
@@ -117,6 +119,29 @@ _SCHEMA_DESCRIPTION_MD = (
     "responsibility."
 )
 
+# VGI413/VGI408-412: the schema's ordered category registry (navigation / SEO).
+# Each object below declares a `vgi.category` naming one of these; both categories
+# have >=1 member so none is a dead section (VGI412).
+_SCHEMA_CATEGORIES = json.dumps(
+    [
+        {
+            "name": "search",
+            "description": (
+                "Full-text search over Wikipedia and any MediaWiki wiki, returning "
+                "ranked article results (titles, snippets, page ids, URLs)."
+            ),
+        },
+        {
+            "name": "page-retrieval",
+            "description": (
+                "Fetch a single known page's plain-text summary extract or its rich "
+                "multi-column summary row (extract, URL, thumbnail, page id)."
+            ),
+        },
+    ],
+    ensure_ascii=False,
+)
+
 _SCHEMA_EXAMPLE_QUERIES = (
     "SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);\n"
     "SELECT wiki.main.wiki_page('DuckDB');\n"
@@ -159,8 +184,64 @@ _SCHEMA_KEYWORDS = [
     "language",
 ]
 
+# VGI152: fixed analyst-task suite for `vgi-lint simulate`. Only each task's
+# `prompt` is shown to the simulated agent; `reference_sql` is the grader's
+# canonical solution. References are chosen to be DETERMINISTIC against live
+# Wikipedia (page existence and resolved titles are stable, unlike article text):
+# each resolves to a boolean or a fixed title. `ignore_column_names` lets the
+# agent alias freely; `unordered` guards single-value comparisons.
+_AGENT_TEST_TASKS = json.dumps(
+    [
+        {
+            "name": "page_summary_title",
+            "prompt": (
+                "Using the wiki catalog, fetch the Wikipedia page summary for the "
+                "article titled 'DuckDB' and return just its resolved page title."
+            ),
+            "reference_sql": "SELECT title FROM wiki.main.wiki_page_summary('DuckDB')",
+            "ignore_column_names": True,
+            "unordered": True,
+        },
+        {
+            "name": "missing_page_is_null",
+            "prompt": (
+                "Using the wiki catalog's scalar page-extract function, determine "
+                "whether the English Wikipedia article 'ThisPageDoesNotExist_zzz' is "
+                "missing. Return a single boolean that is true when the page has no "
+                "summary."
+            ),
+            "reference_sql": ("SELECT wiki.main.wiki_page('ThisPageDoesNotExist_zzz') IS NULL AS missing"),
+            "ignore_column_names": True,
+            "unordered": True,
+        },
+        {
+            "name": "search_found",
+            "prompt": (
+                "Using the wiki catalog, run a full-text search of English Wikipedia "
+                "for 'apache arrow' (limit to 3 results) and return a single boolean "
+                "that is true when at least one matching article was found."
+            ),
+            "reference_sql": ("SELECT count(*) >= 1 AS found FROM wiki.main.wiki_search('apache arrow', count := 3)"),
+            "ignore_column_names": True,
+            "unordered": True,
+        },
+        {
+            "name": "page_has_extract",
+            "prompt": (
+                "Using the wiki catalog, return a single boolean that is true when the "
+                "English Wikipedia article 'DuckDB' has a non-empty summary extract."
+            ),
+            "reference_sql": "SELECT wiki.main.wiki_page('DuckDB') IS NOT NULL AS has_extract",
+            "ignore_column_names": True,
+            "unordered": True,
+        },
+    ],
+    ensure_ascii=False,
+)
+
 _CATALOG_TAGS = {
     "vgi.title": "Wikipedia / MediaWiki Search & Page Retrieval",
+    "vgi.agent_test_tasks": _AGENT_TEST_TASKS,
     "vgi.keywords": keywords_json(_CATALOG_KEYWORDS),
     "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
     "vgi.doc_md": _CATALOG_DESCRIPTION_MD,
@@ -186,6 +267,8 @@ _WIKI_CATALOG = Catalog(
                 "vgi.keywords": keywords_json(_SCHEMA_KEYWORDS),
                 "vgi.doc_llm": _SCHEMA_DESCRIPTION_LLM,
                 "vgi.doc_md": _SCHEMA_DESCRIPTION_MD,
+                # VGI413: ordered category registry; each function names one via vgi.category.
+                "vgi.categories": _SCHEMA_CATEGORIES,
                 # VGI139: source_url is kept on the catalog object only.
                 "vgi.example_queries": _SCHEMA_EXAMPLE_QUERIES,
                 # VGI123 classifying tags -- BARE keys (not vgi.-namespaced).

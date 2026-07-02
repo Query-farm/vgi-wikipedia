@@ -63,10 +63,9 @@ _WIKI_PAGE_SUMMARY_DOC_MD = (
     "SELECT title, extract, url, thumbnail_url, pageid\n"
     "  FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');\n"
     "```\n\n"
-    "## Arguments\n\n"
-    "- `title` (positional) -- the page title to fetch.\n"
-    "- `lang :=` -- wiki language code (default `'en'`).\n"
-    "- `api_url :=` -- override the MediaWiki api.php URL (default Wikipedia).\n\n"
+    "The page title is positional; the language wiki and a custom MediaWiki endpoint are "
+    "named options. See the per-argument docs (`vgi_function_arguments`) for the exact "
+    "names and defaults.\n\n"
     "## Notes\n\n"
     "- A missing page returns zero rows; it is not an error.\n"
     "- `thumbnail_url` may be NULL when the page has no lead image.\n"
@@ -156,6 +155,7 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
                 keywords=_WIKI_PAGE_SUMMARY_KEYWORDS,
                 relative_path="vgi_wikipedia/tables_page.py",
             ),
+            "vgi.category": "page-retrieval",
             "vgi.result_columns_md": _WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD,
             "vgi.executable_examples": _WIKI_PAGE_SUMMARY_EXECUTABLE_EXAMPLES,
         }

@@ -100,6 +100,8 @@ _WIKI_PAGE_TAGS = object_tags(
     keywords=_WIKI_PAGE_KEYWORDS,
     relative_path="vgi_wikipedia/scalars.py",
 )
+# VGI413: both wiki_page arity overloads belong to the page-retrieval category.
+_WIKI_PAGE_TAGS["vgi.category"] = "page-retrieval"
 
 # VGI509: guaranteed-runnable, catalog-qualified examples. Each `sql` is
 # self-contained and re-runnable against an attached `wiki` worker. We omit

@@ -86,12 +86,9 @@ _WIKI_SEARCH_DOC_MD = (
     "SELECT title\n"
     "  FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3);\n"
     "```\n\n"
-    "## Arguments\n\n"
-    "- `query` (positional) -- the full-text search string.\n"
-    "- `lang :=` -- wiki language code (default `'en'`).\n"
-    "- `count :=` -- results per API page, 1-50 (default 10).\n"
-    "- `max_pages :=` -- max `sroffset` pages to follow, 1-20 (default 1).\n"
-    "- `api_url :=` -- override the MediaWiki api.php URL (default Wikipedia).\n\n"
+    "The query is positional; the language wiki, page size, continuation depth, and a "
+    "custom MediaWiki endpoint are named options. See the per-argument docs "
+    "(`vgi_function_arguments`) for the exact names, defaults, and ranges.\n\n"
     "## Notes\n\n"
     "- Snippets are HTML-stripped to plain text; `extra` is a JSON string (use the "
     "`json` extension's `->>`).\n"
@@ -278,6 +275,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
                 keywords=_WIKI_SEARCH_KEYWORDS,
                 relative_path="vgi_wikipedia/tables.py",
             ),
+            "vgi.category": "search",
             "vgi.result_columns_md": _WIKI_SEARCH_RESULT_COLUMNS_MD,
             "vgi.executable_examples": _WIKI_SEARCH_EXECUTABLE_EXAMPLES,
         }
