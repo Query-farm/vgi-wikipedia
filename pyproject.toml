@@ -45,9 +45,20 @@ dev = [
 http = [
     "vgi-python[http]>=0.16.0",
 ]
+# HTTP-serving extra installed by the Docker image (`pip install '.[serve]'`).
+# Same contents as `http`; named `serve` to match the shared docker convention.
+serve = [
+    "vgi-python[http]>=0.16.0",
+]
+
+[project.scripts]
+# Console entry the Docker image (stdio leg) and `bin/vgi-wikipedia-worker` exec.
+vgi-wikipedia-worker = "vgi_wikipedia.worker:main"
 
 [project.urls]
 Homepage = "https://query.farm"
+Repository = "https://github.com/Query-farm/vgi-wikipedia"
+Issues = "https://github.com/Query-farm/vgi-wikipedia/issues"
 
 [build-system]
 requires = ["hatchling"]
