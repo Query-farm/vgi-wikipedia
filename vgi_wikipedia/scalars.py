@@ -19,6 +19,7 @@ The richer multi-column shape (title, extract, url, thumbnail_url, pageid) is th
 
 from __future__ import annotations
 
+import json
 from typing import Annotated
 
 import pyarrow as pa
@@ -32,7 +33,7 @@ from vgi_wikipedia.parse import parse_summary
 
 _WIKI_PAGE_DOC_LLM = (
     "Fetch the plain-text **lead-paragraph summary extract** of a Wikipedia (or any "
-    "MediaWiki) article as a single VARCHAR.\n\n"
+    "MediaWiki) article as a single `VARCHAR`.\n\n"
     "Call it as `wiki.main.wiki_page(title)` for English, or "
     "`wiki.main.wiki_page(title, lang)` to target another language wiki (e.g. `'de'`, "
     "`'fr'`). Because VGI scalars are positional-only, `lang` is a positional argument, "
@@ -40,8 +41,8 @@ _WIKI_PAGE_DOC_LLM = (
     "Use it to enrich an existing column of titles with encyclopedic context for "
     "retrieval-augmented generation (RAG), fact lookup, or knowledge grounding -- it is "
     "set-based, so it resolves a whole column of titles in one scan.\n\n"
-    "**Input:** an article title column (VARCHAR). **Output:** the summary extract "
-    "VARCHAR.\n\n"
+    "**Input:** an article title column (`VARCHAR`). **Output:** the summary extract "
+    "`VARCHAR`.\n\n"
     "**Edge cases:** a missing page, a blank title, or a NULL input yields NULL for that "
     "row -- a single bad title never aborts the scan. A transport-level failure surfaces "
     "as a clean DuckDB error rather than crashing the worker. For the richer multi-column "
@@ -53,18 +54,14 @@ _WIKI_PAGE_DOC_LLM = (
 _WIKI_PAGE_DOC_MD = (
     "# wiki_page\n\n"
     "Returns the plain-text summary **extract** (lead paragraphs) of a Wikipedia / "
-    "MediaWiki page as a scalar VARCHAR, over the free MediaWiki REST summary endpoint "
+    "MediaWiki page as a scalar `VARCHAR`, over the free MediaWiki REST summary endpoint "
     "(with an Action-API `prop=extracts` fallback).\n\n"
     "## Usage\n\n"
-    "```sql\n"
-    "SELECT wiki.main.wiki_page('DuckDB');          -- English (default)\n"
-    "SELECT wiki.main.wiki_page('DuckDB', 'de');    -- German Wikipedia\n"
-    "```\n\n"
-    "Scalars are positional-only, so the language is a positional argument (no "
-    "`lang :=`). To resolve a column of titles, just reference the column:\n\n"
-    "```sql\n"
-    "SELECT t.name, wiki.main.wiki_page(t.name) AS summary FROM topics t;\n"
-    "```\n\n"
+    "Call `wiki.main.wiki_page(title)` for English or `wiki.main.wiki_page(title, lang)` "
+    "for another language edition. Scalars are positional-only, so the language is a "
+    "positional argument (no `lang :=`). Because it is set-based, referencing a title "
+    "column resolves the whole column in one scan. See the runnable examples in this "
+    "function's `example_queries` metadata.\n\n"
     "## Notes\n\n"
     "- A missing page, blank title, or NULL input returns NULL (the scan is never "
     "aborted by one bad row).\n"
@@ -102,6 +99,26 @@ _WIKI_PAGE_TAGS = object_tags(
 )
 # VGI413: both wiki_page arity overloads belong to the page-retrieval category.
 _WIKI_PAGE_TAGS["vgi.category"] = "page-retrieval"
+
+# VGI515: described example_queries. The native duckdb_functions().examples carrier
+# drops per-example descriptions, so we carry them here as a JSON list of
+# {description, sql}. The `sql` strings are byte-identical to each overload's
+# Meta.examples so the two carriers dedup to a single described example; both
+# arity overloads share the aggregated list (examples aggregate by function name).
+_WIKI_PAGE_EXAMPLE_QUERIES = json.dumps(
+    [
+        {
+            "description": "The English Wikipedia summary of DuckDB",
+            "sql": "SELECT wiki.main.wiki_page('DuckDB')",
+        },
+        {
+            "description": "The German Wikipedia summary of DuckDB",
+            "sql": "SELECT wiki.main.wiki_page('DuckDB', 'de')",
+        },
+    ],
+    ensure_ascii=False,
+)
+_WIKI_PAGE_TAGS["vgi.example_queries"] = _WIKI_PAGE_EXAMPLE_QUERIES
 
 # VGI509: guaranteed-runnable, catalog-qualified examples. Each `sql` is
 # self-contained and re-runnable against an attached `wiki` worker. We omit

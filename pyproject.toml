@@ -26,7 +26,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "vgi-python>=0.9.0",
+    "vgi-python>=0.16.0",
     "httpx>=0.27",
     "pyarrow",
 ]
@@ -43,7 +43,7 @@ dev = [
 # `http` extra (waitress). CI's http transport leg installs this via
 # `uv sync --extra http`.
 http = [
-    "vgi-python[http]>=0.9.0",
+    "vgi-python[http]>=0.16.0",
 ]
 
 [project.urls]
@@ -99,3 +99,13 @@ python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
+
+[tool.vgi-lint-check]
+# VGI146 wants a browsable table/view so an agent can SELECT * without knowing
+# arguments. This worker is a pure egress connector: every function needs a
+# genuine per-key argument (a search query or a page title) against a
+# rate-limited public MediaWiki API — there is no sensible default slice to
+# browse, which is the "arguments are genuinely required" case the rule itself
+# calls out. Discovery is instead made cheap via strong vgi.example_queries and
+# argument defaults/ranges on every function. Suppressed with rationale.
+ignore = ["VGI146"]

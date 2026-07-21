@@ -65,7 +65,7 @@ _WIKI_SEARCH_DOC_LLM = (
     "fact lookup, and turning a topic into a ranked set of article titles and snippets "
     "you can then feed to `wiki_page` / `wiki_page_summary` or to vgi-embed / vgi-rerank.\n\n"
     "**Returns** the unified search schema: `title`, `snippet` (HTML stripped to plain "
-    "text), `pageid`, `wordcount`, `url`, `lang`, and `extra` (a JSON VARCHAR of "
+    "text), `pageid`, `wordcount`, `url`, `lang`, and `extra` (a JSON `VARCHAR` of "
     "timestamp/size, NULL when absent).\n\n"
     "**Edge cases:** an empty query is rejected at bind time. Paging is sequential "
     "(each page's `sroffset` comes from the previous response) and pinned to a single "
@@ -79,13 +79,10 @@ _WIKI_SEARCH_DOC_MD = (
     "Full-text search over Wikipedia / any MediaWiki, returning ranked results as a "
     "table, over the free MediaWiki Action API (`action=query&list=search`).\n\n"
     "## Usage\n\n"
-    "```sql\n"
-    "SELECT title, snippet, url\n"
-    "  FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);\n\n"
-    "-- follow several sroffset pages of results\n"
-    "SELECT title\n"
-    "  FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3);\n"
-    "```\n\n"
+    "Call it as a table function in `FROM`: the search query is the one positional "
+    "argument, and `lang`, `count`, `max_pages`, and `api_url` are `name :=` named "
+    "options. Raise `max_pages` to follow more `sroffset` continuation pages. See the "
+    "runnable examples in this function's `example_queries` metadata.\n\n"
     "The query is positional; the language wiki, page size, continuation depth, and a "
     "custom MediaWiki endpoint are named options. See the per-argument docs "
     "(`vgi_function_arguments`) for the exact names, defaults, and ranges.\n\n"
@@ -117,16 +114,43 @@ _WIKI_SEARCH_KEYWORDS = [
     "language",
 ]
 
-_WIKI_SEARCH_RESULT_COLUMNS_MD = (
-    "| Column | Type | Description |\n"
-    "| --- | --- | --- |\n"
-    "| `title` | VARCHAR | Article title. |\n"
-    "| `snippet` | VARCHAR | Search-result excerpt, HTML stripped to plain text. |\n"
-    "| `pageid` | BIGINT | MediaWiki page id. |\n"
-    "| `wordcount` | INTEGER | Word count of the article. |\n"
-    "| `url` | VARCHAR | Canonical article URL. |\n"
-    "| `lang` | VARCHAR | Wiki language code the result came from. |\n"
-    "| `extra` | VARCHAR | Extra fields (timestamp, size), JSON-encoded (else NULL). |"
+# VGI307/VGI414: the static result schema, as a JSON array of {name,type,description}
+# (the retired free-form `vgi.result_columns_md` is replaced by this structured tag).
+_WIKI_SEARCH_RESULT_COLUMNS_SCHEMA = json.dumps(
+    [
+        {"name": "title", "type": "VARCHAR", "description": "Article title."},
+        {
+            "name": "snippet",
+            "type": "VARCHAR",
+            "description": "Search-result excerpt, HTML stripped to plain text.",
+        },
+        {"name": "pageid", "type": "BIGINT", "description": "MediaWiki page id."},
+        {"name": "wordcount", "type": "INTEGER", "description": "Word count of the article."},
+        {"name": "url", "type": "VARCHAR", "description": "Canonical article URL."},
+        {"name": "lang", "type": "VARCHAR", "description": "Wiki language code the result came from."},
+        {
+            "name": "extra",
+            "type": "VARCHAR",
+            "description": "Extra fields (timestamp, size), JSON-encoded (else NULL).",
+        },
+    ],
+    ensure_ascii=False,
+)
+
+# VGI515: described example_queries (the native examples carrier drops descriptions).
+# `sql` matches Meta.examples byte-for-byte so the carriers dedup to one described row.
+_WIKI_SEARCH_EXAMPLE_QUERIES = json.dumps(
+    [
+        {
+            "description": "Top-10 English Wikipedia results for 'apache arrow'",
+            "sql": "SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10)",
+        },
+        {
+            "description": "Follow up to 3 sroffset pages of German results",
+            "sql": "SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)",
+        },
+    ],
+    ensure_ascii=False,
 )
 
 # VGI509: guaranteed-runnable, catalog-qualified examples (expected_result omitted
@@ -276,7 +300,8 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
                 relative_path="vgi_wikipedia/tables.py",
             ),
             "vgi.category": "search",
-            "vgi.result_columns_md": _WIKI_SEARCH_RESULT_COLUMNS_MD,
+            "vgi.result_columns_schema": _WIKI_SEARCH_RESULT_COLUMNS_SCHEMA,
+            "vgi.example_queries": _WIKI_SEARCH_EXAMPLE_QUERIES,
             "vgi.executable_examples": _WIKI_SEARCH_EXECUTABLE_EXAMPLES,
         }
         examples = [

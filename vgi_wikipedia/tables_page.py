@@ -13,6 +13,7 @@ failure raises a clean :class:`WikiError`.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Annotated, ClassVar
 
@@ -59,10 +60,9 @@ _WIKI_PAGE_SUMMARY_DOC_MD = (
     "table -- the multi-column companion to the `wiki_page` scalar -- over the free "
     "MediaWiki REST summary endpoint.\n\n"
     "## Usage\n\n"
-    "```sql\n"
-    "SELECT title, extract, url, thumbnail_url, pageid\n"
-    "  FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');\n"
-    "```\n\n"
+    "Call it as a table function in `FROM`: the page title is the one positional "
+    "argument, and `lang` and `api_url` are `name :=` named options. See the runnable "
+    "examples in this function's `example_queries` metadata.\n\n"
     "The page title is positional; the language wiki and a custom MediaWiki endpoint are "
     "named options. See the per-argument docs (`vgi_function_arguments`) for the exact "
     "names and defaults.\n\n"
@@ -93,14 +93,33 @@ _WIKI_PAGE_SUMMARY_KEYWORDS = [
     "language",
 ]
 
-_WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD = (
-    "| Column | Type | Description |\n"
-    "| --- | --- | --- |\n"
-    "| `title` | VARCHAR | Resolved page title. |\n"
-    "| `extract` | VARCHAR | Plain-text summary extract. |\n"
-    "| `url` | VARCHAR | Canonical page URL. |\n"
-    "| `thumbnail_url` | VARCHAR | Thumbnail image URL, if any (else NULL). |\n"
-    "| `pageid` | BIGINT | MediaWiki page id. |"
+# VGI307/VGI414: the static result schema as a JSON array of {name,type,description}
+# (replaces the retired free-form `vgi.result_columns_md`).
+_WIKI_PAGE_SUMMARY_RESULT_COLUMNS_SCHEMA = json.dumps(
+    [
+        {"name": "title", "type": "VARCHAR", "description": "Resolved page title."},
+        {"name": "extract", "type": "VARCHAR", "description": "Plain-text summary extract."},
+        {"name": "url", "type": "VARCHAR", "description": "Canonical page URL."},
+        {
+            "name": "thumbnail_url",
+            "type": "VARCHAR",
+            "description": "Thumbnail image URL, if any (else NULL).",
+        },
+        {"name": "pageid", "type": "BIGINT", "description": "MediaWiki page id."},
+    ],
+    ensure_ascii=False,
+)
+
+# VGI515: described example_queries (the native carrier drops descriptions); the
+# `sql` matches Meta.examples byte-for-byte so the two carriers dedup to one row.
+_WIKI_PAGE_SUMMARY_EXAMPLE_QUERIES = json.dumps(
+    [
+        {
+            "description": "The English Wikipedia summary row for DuckDB",
+            "sql": "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')",
+        },
+    ],
+    ensure_ascii=False,
 )
 
 # VGI509: guaranteed-runnable, catalog-qualified examples (expected_result omitted).
@@ -156,7 +175,8 @@ class WikiPageSummary(TableFunctionGenerator[WikiPageArgs, None]):
                 relative_path="vgi_wikipedia/tables_page.py",
             ),
             "vgi.category": "page-retrieval",
-            "vgi.result_columns_md": _WIKI_PAGE_SUMMARY_RESULT_COLUMNS_MD,
+            "vgi.result_columns_schema": _WIKI_PAGE_SUMMARY_RESULT_COLUMNS_SCHEMA,
+            "vgi.example_queries": _WIKI_PAGE_SUMMARY_EXAMPLE_QUERIES,
             "vgi.executable_examples": _WIKI_PAGE_SUMMARY_EXECUTABLE_EXAMPLES,
         }
         examples = [

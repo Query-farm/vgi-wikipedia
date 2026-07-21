@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http]>=0.8.5",
+#     "vgi-python[http]>=0.16.0",
 #     "httpx>=0.27",
 # ]
 # ///
@@ -142,10 +142,23 @@ _SCHEMA_CATEGORIES = json.dumps(
     ensure_ascii=False,
 )
 
-_SCHEMA_EXAMPLE_QUERIES = (
-    "SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);\n"
-    "SELECT wiki.main.wiki_page('DuckDB');\n"
-    "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en');"
+# VGI515: schema-level example_queries must be a JSON list of {description, sql}.
+_SCHEMA_EXAMPLE_QUERIES = json.dumps(
+    [
+        {
+            "description": "Full-text search English Wikipedia for 'apache arrow' (top 10).",
+            "sql": ("SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10)"),
+        },
+        {
+            "description": "Fetch the English Wikipedia summary extract for the DuckDB article.",
+            "sql": "SELECT wiki.main.wiki_page('DuckDB')",
+        },
+        {
+            "description": "Fetch the rich English summary row (title, extract, url) for DuckDB.",
+            "sql": "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')",
+        },
+    ],
+    ensure_ascii=False,
 )
 
 _CATALOG_KEYWORDS = [
