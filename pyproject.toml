@@ -112,11 +112,9 @@ warn_return_any = true
 warn_unused_ignores = true
 
 [tool.vgi-lint-check]
-# VGI146 wants a browsable table/view so an agent can SELECT * without knowing
-# arguments. This worker is a pure egress connector: every function needs a
-# genuine per-key argument (a search query or a page title) against a
-# rate-limited public MediaWiki API — there is no sensible default slice to
-# browse, which is the "arguments are genuinely required" case the rule itself
-# calls out. Discovery is instead made cheap via strong vgi.example_queries and
-# argument defaults/ranges on every function. Suppressed with rationale.
-ignore = ["VGI146"]
+# NOTE: this worker used to waive VGI146 (table-functions-without-browsable-table).
+# Every function needs a genuine per-key argument against a rate-limited public
+# MediaWiki API, so there is no honest default slice to browse — but VGI146 now
+# honours the escape hatch its own fix hint names, and stands down when every
+# table function carries a described example and documented arguments (which this
+# worker does). Removed after `vgi-lint --audit-waivers` reported it dead.

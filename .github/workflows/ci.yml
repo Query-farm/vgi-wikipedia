@@ -99,7 +99,6 @@ jobs:
           # cache a stale SDK and emit the old catalog schema -> false mismatch).
           location: ".venv/bin/python wikipedia_worker.py"
           fail-on: info
-          version: "0.73.0"
 
   # Resolve the latest published haybarn release once, so the whole matrix tests
   # the same version (and we never hardcode/pin it).
