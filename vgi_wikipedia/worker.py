@@ -191,11 +191,11 @@ _SCHEMA_KEYWORDS = [
 ]
 
 # VGI152: fixed analyst-task suite for `vgi-lint simulate`. Only each task's
-# `prompt` is shown to the simulated agent; `reference_sql` is the grader's
-# canonical solution. References are chosen to be DETERMINISTIC against live
-# Wikipedia (page existence and resolved titles are stable, unlike article text):
-# each resolves to a boolean or a fixed title. `ignore_column_names` lets the
-# agent alias freely; `unordered` guards single-value comparisons.
+# `name` and `prompt` are published here (VGI416); the grader's canonical
+# `reference_sql` and grading options live in `vgi-agent-tests.yaml` at the repo
+# root, merged by task name. References are chosen to be DETERMINISTIC against
+# live Wikipedia (page existence and resolved titles are stable, unlike article
+# text): each resolves to a boolean or a fixed title.
 _AGENT_TEST_TASKS = json.dumps(
     [
         {
@@ -204,9 +204,6 @@ _AGENT_TEST_TASKS = json.dumps(
                 "Using the wiki catalog, fetch the Wikipedia page summary for the "
                 "article titled 'DuckDB' and return just its resolved page title."
             ),
-            "reference_sql": "SELECT title FROM wiki.main.wiki_page_summary('DuckDB')",
-            "ignore_column_names": True,
-            "unordered": True,
         },
         {
             "name": "missing_page_is_null",
@@ -216,9 +213,6 @@ _AGENT_TEST_TASKS = json.dumps(
                 "missing. Return a single boolean that is true when the page has no "
                 "summary."
             ),
-            "reference_sql": ("SELECT wiki.main.wiki_page('ThisPageDoesNotExist_zzz') IS NULL AS missing"),
-            "ignore_column_names": True,
-            "unordered": True,
         },
         {
             "name": "search_found",
@@ -227,9 +221,6 @@ _AGENT_TEST_TASKS = json.dumps(
                 "for 'apache arrow' (limit to 3 results) and return a single boolean "
                 "that is true when at least one matching article was found."
             ),
-            "reference_sql": ("SELECT count(*) >= 1 AS found FROM wiki.main.wiki_search('apache arrow', count := 3)"),
-            "ignore_column_names": True,
-            "unordered": True,
         },
         {
             "name": "page_has_extract",
@@ -237,9 +228,6 @@ _AGENT_TEST_TASKS = json.dumps(
                 "Using the wiki catalog, return a single boolean that is true when the "
                 "English Wikipedia article 'DuckDB' has a non-empty summary extract."
             ),
-            "reference_sql": "SELECT wiki.main.wiki_page('DuckDB') IS NOT NULL AS has_extract",
-            "ignore_column_names": True,
-            "unordered": True,
         },
     ],
     ensure_ascii=False,
@@ -266,7 +254,7 @@ _WIKI_CATALOG = Catalog(
     source_url="https://github.com/Query-farm/vgi-wikipedia",
     schemas=[
         Schema(
-            name="main",
+            path=["main"],
             comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG",
             tags={
                 "vgi.title": "Wikipedia / MediaWiki Functions",
