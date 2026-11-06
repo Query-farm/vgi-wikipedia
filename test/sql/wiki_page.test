@@ -12,7 +12,7 @@ statement ok
 LOAD vgi;
 
 statement ok
-ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '${VGI_WIKIPEDIA_WORKER}');
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '{VGI_WIKIPEDIA_WORKER}');
 
 # ============================================================================
 # wiki_page scalar (positional-only): returns the summary extract VARCHAR.

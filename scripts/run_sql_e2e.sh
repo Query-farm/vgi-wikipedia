@@ -41,4 +41,5 @@ echo "Mock MediaWiki server on 127.0.0.1:${PORT}"
 # (A fixed URL with no {lang} placeholder targets the single mock wiki.)
 export VGI_WIKIPEDIA_WORKER="env VGI_WIKIPEDIA_API_URL=http://127.0.0.1:${PORT}/w/api.php uv run --python 3.13 wikipedia_worker.py"
 
-exec "$HAYBARN" --test-dir "$TEST_DIR" "$TEST_PATTERN"
+# haybarn-unittest 2.0 isolates $HOME; --keep-home lets it see the installed vgi extension.
+exec "$HAYBARN" --keep-home --test-dir "$TEST_DIR" "$TEST_PATTERN"

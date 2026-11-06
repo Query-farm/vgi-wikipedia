@@ -23,7 +23,7 @@ statement ok
 LOAD json;
 
 statement ok
-ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '${VGI_WIKIPEDIA_WORKER}');
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '{VGI_WIKIPEDIA_WORKER}');
 
 # ============================================================================
 # Catalog discovery

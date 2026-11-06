@@ -35,7 +35,7 @@ test-live:
 ensure-haybarn:
 	@if ! PATH="$(LOCAL_BIN):$$PATH" command -v $(HAYBARN) >/dev/null 2>&1; then \
 		echo "Installing haybarn-unittest..."; \
-		uv tool install 'haybarn-unittest<2'; \
+		uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'; \
 	fi
 
 # End-to-end SQL tests: start the mock server, ATTACH the worker against it, run
