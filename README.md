@@ -17,7 +17,7 @@ and `vgi-rerank`.
 
 ```sql
 INSTALL vgi FROM community; LOAD vgi;
-ATTACH 'wiki' (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.2.0 vgi-wikipedia-worker');
+ATTACH 'wiki' (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.3.0 vgi-wikipedia-worker');
 
 -- Full-text search (table function; named args)
 SELECT title, snippet, url
@@ -40,7 +40,7 @@ The worker isn't on PyPI; [uv](https://docs.astral.sh/uv/) runs it straight from
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.2.0 vgi-wikipedia-worker');
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.3.0 vgi-wikipedia-worker');
 
 -- Full-text search English Wikipedia for 'apache arrow' (top 10).
 SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10);
@@ -49,7 +49,7 @@ SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'e
 SELECT wiki.main.wiki_page('DuckDB');
 ```
 
-Change `@v0.2.0` to move to a newer release.
+Change `@v0.3.0` to move to a newer release.
 
 No API key is needed; the worker calls the public MediaWiki API, so it needs outbound network access. The content it returns is CC-BY-SA, so read the content licensing section below before storing or redistributing results. [Configuration](#configuration) covers the User-Agent and API URL overrides.
 
@@ -58,7 +58,7 @@ No API key is needed; the worker calls the public MediaWiki API, so it needs out
 - **Docker** (the image bundles the worker and its dependencies):
 
   ```sql
-  ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-wikipedia:0.2.0');
+  ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-wikipedia:0.3.0');
   ```
 
 - **From a local checkout** (`git clone https://github.com/Query-farm/vgi-wikipedia`), point `LOCATION` at `uv run --project /path/to/vgi-wikipedia vgi-wikipedia-worker`.
