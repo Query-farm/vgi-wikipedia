@@ -234,7 +234,8 @@ _AGENT_TEST_TASKS = json.dumps(
 )
 
 _CATALOG_TAGS = {
-    "vgi.title": "Wikipedia / MediaWiki Search & Page Retrieval",
+    "vgi.title": "Wikipedia",
+    "vgi.subtitle": "Search Wikipedia and other MediaWiki sites and fetch page text and summaries from SQL.",
     "vgi.agent_test_tasks": _AGENT_TEST_TASKS,
     "vgi.keywords": keywords_json(_CATALOG_KEYWORDS),
     "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
@@ -257,7 +258,7 @@ _WIKI_CATALOG = Catalog(
             path=["main"],
             comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG",
             tags={
-                "vgi.title": "Wikipedia / MediaWiki Functions",
+                "vgi.title": "Wikipedia functions",
                 "vgi.keywords": keywords_json(_SCHEMA_KEYWORDS),
                 "vgi.doc_llm": _SCHEMA_DESCRIPTION_LLM,
                 "vgi.doc_md": _SCHEMA_DESCRIPTION_MD,
