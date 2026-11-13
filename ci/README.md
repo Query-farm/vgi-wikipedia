@@ -40,6 +40,8 @@ environment:
 
 ```sh
 export VGI_WIKIPEDIA_API_URL="http://127.0.0.1:<mock-port>/w/api.php"
+export VGI_WIKIDATA_API_URL="$VGI_WIKIPEDIA_API_URL"
+export VGI_WIKIDATA_SPARQL_URL="http://127.0.0.1:<mock-port>/sparql"
 ```
 
 This is the key transport-portable detail: the env var is **exported, not baked
@@ -62,7 +64,7 @@ extension picks the transport from the `LOCATION` string the `.test` files
 | `unix`       | `unix:///tmp/wiki-<pid>.sock`             | harness boots `wikipedia_worker.py --unix <sock>`, waits for the socket, then ATTACHes it |
 
 The CI `integration` job is a `transport: [subprocess, http, unix]` × `os`
-matrix; each leg runs `ci/run-integration.sh` with `TRANSPORT=<t>`. Run a single
+matrix (currently Linux only); each leg runs `ci/run-integration.sh` with `TRANSPORT=<t>`. Run a single
 transport locally with e.g. `TRANSPORT=http ci/run-integration.sh`.
 
 ### Port / readiness discovery
@@ -116,10 +118,10 @@ was already externalized.)
 
 ### Per-transport status
 
-- **subprocess**: GREEN — 51 assertions.
-- **http**: GREEN — 55 assertions (51 + the injected httpfs INSTALL/LOAD across
-  the two `.test` files). Full suite incl. `wiki_search.test` `sroffset` paging.
-- **unix**: GREEN — 51 assertions.
+- **subprocess**: GREEN — 90 assertions.
+- **http**: GREEN — 96 assertions (90 + the injected httpfs INSTALL/LOAD across
+  the three `.test` files). Includes Wikipedia paging and 1,200-row SPARQL scans.
+- **unix**: GREEN — 90 assertions.
 
 ## Run it locally
 
@@ -131,4 +133,17 @@ WORKER_CMD="uv run --python 3.13 wikipedia_worker.py" \
 ```
 
 `TRANSPORT` defaults to `subprocess`, and `WORKER_CMD` defaults to
-`uv run --python 3.13 <repo>/wikipedia_worker.py`.
+`<repo>/.venv/bin/python <repo>/wikipedia_worker.py`.
+
+
+The fixture server also serves a captured Wikibase entity and executes SPARQL
+against an independent RDFLib graph. `wikidata.test` checks nested typed values,
+statement context, missing entities, local table joins, RDF term metadata, graph
+paths, row limits, rejected updates and a 1,200-row multi-batch scan on every
+transport. Python tests separately exercise the signed VGI extension under stock
+DuckDB 2.0.0. The metadata job uses `scripts/check_metadata.py` to execute examples
+and graders against these same local endpoints at the strict `info` threshold.
+
+Run the complete local gate with `make check`, or `make test-sql-all` for the
+transport matrix. Local Haybarn is pinned in `.tools`; CI resolves the current
+2.0 release as before. Both need VGI protocol 3.3, matching vgi-python 0.51.1.

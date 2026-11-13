@@ -13,3 +13,6 @@ duckdb_unittest_tempdir/
 
 # vgi-lint execute/ai caches
 .vgi-*-cache.json
+
+.tools/
+dist/

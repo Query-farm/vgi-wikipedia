@@ -21,9 +21,9 @@ catalog and runs the worker over stdio (a DuckDB subprocess).
 
 Licensing note: the worker code is MIT. CONTENT retrieved from Wikipedia /
 Wikimedia projects is licensed **CC-BY-SA** (text) -- attribution and
-share-alike are the user's responsibility. See README.md.
+share-alike are the user's responsibility. Wikidata structured data is CC0. See README.md.
 """
 
 from __future__ import annotations
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

@@ -8,7 +8,7 @@ Contributor/agent notes. User-facing docs live in `README.md`; this is the
 A [VGI](https://query.farm) worker exposing **Wikipedia / MediaWiki full-text
 search and page retrieval** to DuckDB/SQL over the FREE official MediaWiki Action
 API + REST summary endpoint (no key, no scraping). `wikipedia_worker.py`
-assembles every function into one `wiki` catalog (single `main` schema) over
+assembles every function into one `wiki` catalog (`main` and `wikidata` schemas) over
 stdio. It is an **egress connector** — queries leave the engine for the
 MediaWiki API; the durable value is RAG/knowledge-grounding glue, pairing with
 vgi-embed / vgi-rerank.
@@ -19,7 +19,7 @@ vgi-embed / vgi-rerank.
 wikipedia_worker.py       repo-root stdio entry; PEP 723 inline deps; main()
 serve.py                  HTTP entry (forces --http)
 vgi_wikipedia/
-  client.py               the ONLY networked module: polite MediaWiki HTTP
+  client.py               article network access: polite MediaWiki HTTP
                           client (required User-Agent, timeout, bounded retry on
                           429/5xx, configurable api_url). Raises WikiError; never
                           crashes the worker.
@@ -29,6 +29,10 @@ vgi_wikipedia/
   tables_page.py          wiki_page_summary table function (rich multi-column row)
   scalars.py              wiki_page scalar (arity overloads, positional-only)
   schema_utils.py         Arrow column-comment helper
+  wikidata/               client.py: bounded Wikibase/SPARQL HTTP + TTL cache
+                          parse.py: lossless statements and fixed Arrow schemas
+                          sparql.py: SELECT/ASK validation and RDF term conversion
+                          tables.py: seven new functions and portable Arrow snapshots
 tests/                    pytest: parse (fixtures), tables (scan-state round-trip,
                           network mocked), mock-server E2E (real httpx), scalars,
                           live (gated, real Wikipedia)
@@ -89,7 +93,7 @@ The fetched page rows live in a process-local `_PAGE_CACHE`, keyed by
 
 ## Network discipline
 
-All HTTP is in `client.py`: required descriptive `User-Agent`
+Article HTTP is in `client.py`; structured-data HTTP is in `wikidata/client.py`: required descriptive `User-Agent`
 (`VGI_WIKIPEDIA_USER_AGENT` to override), per-call timeout, bounded retry with
 backoff on 429/5xx, and every failure surfaced as `WikiError` (a clean DuckDB
 error) — the worker process never crashes. `api_url` is injectable
@@ -115,12 +119,14 @@ so the worker can target any MediaWiki wiki.
 ## Licensing — DO NOT regress this decision
 
 - **Worker code: MIT** (`LICENSE`, this repo).
-- **Retrieved CONTENT is CC-BY-SA** (Wikipedia/Wikimedia text). The README leads
+- **Retrieved article text is CC-BY-SA** (Wikipedia/Wikimedia text). The README leads
   with a prominent warning: attribution & share-alike are the **user's**
   responsibility; the worker only fetches content and grants no rights to it. The
   `url` column exists so users can link back / attribute. Keep that warning
   accurate on any change.
-- No API key is ever needed or accepted (the MediaWiki API is free/open).
+- **Wikidata structured data is CC0** (including labels, statements and reference metadata).
+  Referenced external documents and custom endpoints have their own terms.
+- No API key is needed for the public Wikimedia APIs.
 
 ## Deferred / non-goals
 
@@ -128,6 +134,40 @@ so the worker can target any MediaWiki wiki.
   MediaWiki wikis — implemented, not just Wikipedia. The REST-summary derivation
   is best-effort for non-Wikimedia bases and falls back to the Action-API
   `prop=extracts` shape.
-- No full article wikitext/HTML body, no category/link graph, no edit/write
-  paths, no caching layer.
-```
+- No full article wikitext/HTML body, no Wikipedia category/link graph, no edit/write
+  paths. Structured-data queries have their own bounded process-local cache.
+
+
+## Structured-data implementation and checks
+
+`wiki.main.wiki_entity` resolves `pageprops.wikibase_item`. The `wiki.wikidata`
+schema exposes search, entity, statements, qualifiers, statement_references and
+sparql. The name `statement_references` avoids SQL's reserved REFERENCES keyword;
+search uses `count` rather than the reserved LIMIT keyword. List arguments MUST
+specify `arrow_type=pa.list_(pa.string())`: the SDK does not infer `list[str]`.
+
+Structured-data scans serialize their full bounded Arrow snapshot and cursor,
+not a process-local cache key. Only one scan worker runs per invocation. The cache
+is an optimization; results remain consistent across process/HTTP boundaries.
+SPARQL runs at bind to discover dynamic columns and passes its immutable result
+through `BindResponse.opaque_data` and `InitRequest.bind_opaque_data`. This means
+EXPLAIN/DESCRIBE can contact the endpoint and a prepared plan can retain a snapshot.
+Do not change these semantics without updating documentation and SQL tests.
+
+Wikidata names can be stored under `mul`. Prefer the requested language, then mul,
+and return the actual language. Do not silently substitute English. Statement
+values retain lossless datavalue JSON and decimal/time strings. Keep source,
+revision, requested ID and statement ID when joining statement context.
+
+Use `uv sync --locked --extra dev --extra http`, then `make check`. That runs the
+legacy and new tests, stock DuckDB 2.0.0 VGI queries, all three Haybarn transports,
+strict metadata checks and the runnable fixture demo. `make test-live` and
+`uv run --no-sync python examples/wikidata_demo.py --live` are optional public-API
+checks. The public query service can time out independently of local correctness.
+
+The worker resolves vgi-python 0.51.1 (protocol 3.3), RDFLib 7.6.0. Do not downgrade
+the SDK to the old protocol 3.2 lock: current tested engine extensions reject it.
+Pydoclint runs isolated via uvx because its docstring-parser-fork installs into the
+same namespace as the SDK's docstring-parser. If upgrading an existing environment
+that had both, restore the latter with `uv sync --locked --extra dev --extra http
+--reinstall-package docstring-parser` after removing the fork.

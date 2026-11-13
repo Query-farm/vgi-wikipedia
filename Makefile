@@ -14,10 +14,12 @@
 # depends on live Wikipedia.
 
 # haybarn-unittest is a uv tool; ~/.local/bin must be on PATH to find it.
-HAYBARN ?= haybarn-unittest
+HAYBARN ?= $(CURDIR)/.tools/bin/haybarn-unittest
 LOCAL_BIN := $(HOME)/.local/bin
 
-.PHONY: test test-unit test-live test-sql lint typecheck ensure-haybarn
+.PHONY: check test test-unit test-live test-sql test-sql-all lint typecheck ensure-haybarn metadata demo
+
+check: lint test-unit test-sql-all metadata demo
 
 test: test-unit test-sql
 
@@ -35,18 +37,31 @@ test-live:
 ensure-haybarn:
 	@if ! PATH="$(LOCAL_BIN):$$PATH" command -v $(HAYBARN) >/dev/null 2>&1; then \
 		echo "Installing haybarn-unittest..."; \
-		uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'; \
+		uv venv .tools && uv pip install -p .tools haybarn-unittest==2.0.0rc11; \
 	fi
 
 # End-to-end SQL tests: start the mock server, ATTACH the worker against it, run
 # the .test glob. CRITICAL: under haybarn-unittest, `require vgi` SKIPS — the
 # .test files use an explicit `LOAD vgi;` instead.
 test-sql: ensure-haybarn
-	PATH="$(LOCAL_BIN):$$PATH" bash scripts/run_sql_e2e.sh
+	HAYBARN="$(HAYBARN)" PATH="$(LOCAL_BIN):$$PATH" bash scripts/run_sql_e2e.sh
+
+test-sql-all: ensure-haybarn
+	TRANSPORT=subprocess $(MAKE) test-sql
+	TRANSPORT=http $(MAKE) test-sql
+	TRANSPORT=unix $(MAKE) test-sql
+
+metadata:
+	uv run --no-sync python scripts/check_metadata.py
+
+demo:
+	uv run --no-sync python examples/wikidata_demo.py
 
 lint:
+	uv run --no-sync ruff format --check .
 	uv run --no-sync ruff check .
 	uv run --no-sync mypy vgi_wikipedia/
+	uvx pydoclint==0.12.0 --config pyproject.toml vgi_wikipedia/ wikipedia_worker.py serve.py
 
 typecheck:
 	uv run --no-sync mypy vgi_wikipedia/

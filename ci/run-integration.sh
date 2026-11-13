@@ -29,7 +29,7 @@
 #   WORKER_CMD           the stdio command that runs the worker. Used directly
 #                        as the LOCATION for subprocess, and as the process to
 #                        boot the server for http/unix. Defaults to
-#                        `uv run --python 3.13 <repo>/wikipedia_worker.py`.
+#                        `<repo>/.venv/bin/python <repo>/wikipedia_worker.py`.
 # Optional:
 #   STAGE                scratch dir for the preprocessed test tree (default: mktemp)
 set -euo pipefail
@@ -40,7 +40,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
 STAGE="${STAGE:-$(mktemp -d)}"
 TRANSPORT="${TRANSPORT:-subprocess}"
-WORKER_CMD="${WORKER_CMD:-uv run --python 3.13 $REPO/wikipedia_worker.py}"
+WORKER_CMD="${WORKER_CMD:-$REPO/.venv/bin/python $REPO/wikipedia_worker.py}"
 
 echo "Staging preprocessed tests into $STAGE ..."
 mkdir -p "$STAGE/test/sql"
@@ -99,6 +99,8 @@ echo "Mock MediaWiki server on 127.0.0.1:${MOCK_PORT}"
 # subprocess worker AND the out-of-band http/unix worker we boot below — the
 # command-prefix trick only worked when DuckDB spawned the command.
 export VGI_WIKIPEDIA_API_URL="http://127.0.0.1:${MOCK_PORT}/w/api.php"
+export VGI_WIKIDATA_API_URL="$VGI_WIKIPEDIA_API_URL"
+export VGI_WIKIDATA_SPARQL_URL="http://127.0.0.1:${MOCK_PORT}/sparql"
 
 # ---------------------------------------------------------------------------
 # Per-transport: resolve VGI_WIKIPEDIA_WORKER (the LOCATION) and, for the
@@ -223,9 +225,8 @@ cat > "$STAGE/test/_warm.test" <<'EOF'
 statement ok
 INSTALL vgi FROM community;
 EOF
-# haybarn-unittest 2.0 isolates $HOME per run; --keep-home keeps the real home so
-# the warmed extension cache (~/.haybarn) is shared by the suite run below.
-"$HAYBARN_UNITTEST" --keep-home "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
+# Use the native runner interface; it inherits the extension cache location.
+"$HAYBARN_UNITTEST" "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
 rm -f "$STAGE/test/_warm.test"
 
 # Run the whole suite in one invocation, capturing the runner's native
@@ -233,7 +234,7 @@ rm -f "$STAGE/test/_warm.test"
 echo "Running suite (transport: $TRANSPORT, worker: $VGI_WIKIPEDIA_WORKER) ..."
 RUN_LOG="$STAGE/run.log"
 set +e
-"$HAYBARN_UNITTEST" --keep-home "test/sql/*" 2>&1 | tee "$RUN_LOG"
+"$HAYBARN_UNITTEST" "test/sql/*" 2>&1 | tee "$RUN_LOG"
 status=${PIPESTATUS[0]}
 set -e
 

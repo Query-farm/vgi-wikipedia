@@ -26,7 +26,7 @@ Configuration (env, optional):
 
 LICENSING: the worker code is MIT. CONTENT retrieved from Wikipedia / Wikimedia
 projects is **CC-BY-SA** (text) -- attribution and share-alike are the user's
-responsibility. See README.md.
+responsibility. Wikidata structured data is CC0. See README.md.
 """
 
 from __future__ import annotations
@@ -40,75 +40,50 @@ from vgi_wikipedia.meta import keywords_json
 from vgi_wikipedia.scalars import SCALAR_FUNCTIONS
 from vgi_wikipedia.tables import TABLE_FUNCTIONS
 from vgi_wikipedia.tables_page import PAGE_TABLE_FUNCTIONS
+from vgi_wikipedia.wikidata.tables import WIKIDATA_SCHEMA, WikiEntity
 
 _CATALOG_DESCRIPTION_LLM = (
-    "Search Wikipedia (or any MediaWiki) and retrieve page summaries from SQL. "
-    "Run full-text searches that return ranked article titles, plain-text snippets, page ids, "
-    "word counts and canonical URLs; fetch a single page's lead-paragraph summary extract; and "
-    "pull a page's rich summary row (title, extract, url, thumbnail, page id). All over the FREE "
-    "official MediaWiki Action API + REST summary endpoint (no API key). Use it for "
-    "retrieval-augmented generation (RAG), knowledge grounding, fact lookup, and enriching rows "
-    "with encyclopedic context. Choose any wiki language via 'lang' and target non-Wikimedia "
-    "wikis via 'api_url'. NOTE: retrieved article text is CC-BY-SA — attribution and share-alike "
-    "are the caller's responsibility."
+    "Search Wikipedia, read article summaries and enrich local SQL data with Wikidata knowledge. "
+    "Article identity links encyclopedic text to structured entities; statements preserve typed values, "
+    "ranks, qualifiers and sources. Graph queries express relationships using remote SPARQL. "
+    "This read-only connector uses public MediaWiki and Wikibase APIs without an API key. "
+    "Article text is CC-BY-SA; Wikidata structured data is CC0. Custom sites may have different terms."
 )
 
 _CATALOG_DESCRIPTION_MD = (
-    "# Wikipedia & MediaWiki Search in SQL\n\n"
-    "![MediaWiki logo](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/MediaWiki-2020-logo.svg/250px-MediaWiki-2020-logo.svg.png)\n\n"
-    "Run Wikipedia full-text search and page-summary retrieval directly from DuckDB SQL — "
-    "powered by the free, official MediaWiki API, with no API key, no scraping, and no setup.\n\n"
-    "This VGI extension turns any DuckDB session into a live Wikipedia and MediaWiki client. "
-    "It is built for engineers and data teams who want to ground large language models with "
-    "encyclopedic facts, enrich rows with authoritative context, or run ad-hoc knowledge lookups "
-    "without leaving SQL. Because it speaks plain MediaWiki, it works against English Wikipedia by "
-    "default, any of the 300+ Wikipedia language editions via a single `lang` argument, and any "
-    "third-party MediaWiki wiki via `api_url`. It is a thin, polite **egress connector**: queries "
-    "leave the engine for the wiki, results come back as Arrow rows, and the worker process never "
-    "crashes on a missing page or a flaky network.\n\n"
-    "Under the hood the extension calls the [MediaWiki Action API](https://www.mediawiki.org/wiki/API:Main_page) "
-    "for ranked search and the [MediaWiki REST API](https://www.mediawiki.org/wiki/API:REST_API) "
-    "page-summary endpoint for rich lead extracts and thumbnails — the same free, open interfaces "
-    "that power [Wikipedia](https://en.wikipedia.org/) itself. The networked client sends a "
-    "descriptive User-Agent, applies per-call timeouts, and retries with backoff on rate limits and "
-    "server errors, so it stays well-behaved against the public Wikimedia endpoints. The software is "
-    "open source and mirrors the upstream [MediaWiki source on GitHub](https://github.com/wikimedia/mediawiki); "
-    "see the [MediaWiki search API documentation](https://www.mediawiki.org/wiki/API:Search) for the "
-    "underlying query semantics.\n\n"
-    "**SQL use cases and function surface.** Use `wiki_search(query, lang := 'en', count := 10, "
-    "max_pages := 1, api_url := '')` — a table function — to run full-text search and get ranked "
-    "rows of article title, plain-text snippet, page id, word count and canonical URL, ideal for "
-    "retrieval-augmented generation (RAG) candidate selection. Use the `wiki_page(title)` / "
-    "`wiki_page(title, lang)` scalar to fetch a single page's plain-text summary extract inline in a "
-    "`SELECT` (returns NULL on a missing page rather than erroring). Use `wiki_page_summary(title, "
-    "lang := 'en', api_url := '')` — a table function — for the rich single-row summary including "
-    "the extract, canonical URL, thumbnail and page id. Pair it with vgi-embed and vgi-rerank to "
-    "build knowledge-grounding pipelines entirely in SQL.\n\n"
-    "Retrieved article **content is CC-BY-SA** — attribution and share-alike are the caller's "
-    "responsibility; the `url` column is provided so you can link back and attribute."
+    "# Wikipedia and Wikidata in SQL\n\n"
+    "Connect encyclopedic articles to structured knowledge and join the results to local SQL tables. "
+    "Use it for retrieval-augmented generation, fact lookup and entity enrichment. "
+    "Article identity provides a reliable bridge to Wikidata without guessing from similar labels.\n\n"
+    "## Data and context\n\n"
+    "Statements retain their rank, typed value, qualifiers and reference sources. Source revisions help "
+    "identify observations taken at different times. Remote SPARQL supports graph patterns and property paths; "
+    "RDF terms retain their lexical value, datatype and language. Results are bounded and cached locally.\n\n"
+    "## Access\n\n"
+    "The worker calls the free [MediaWiki API](https://www.mediawiki.org/wiki/API:Main_page) and "
+    "[Wikibase API](https://www.mediawiki.org/wiki/Wikibase/API). No API key is required. "
+    "Queries require outbound access; language and endpoint options select the upstream site. "
+    "Public endpoint availability and dataset coverage affect results.\n\n"
+    "Worker code is MIT. Wikipedia article text is **CC-BY-SA**; callers handle attribution and "
+    "share-alike requirements. Wikidata structured data is **CC0**. Custom endpoints have their own terms."
 )
 
 _SCHEMA_DESCRIPTION_LLM = (
-    "Wikipedia / MediaWiki search and page-retrieval functions: full-text search returning "
-    "ranked titles, snippets, page ids, word counts and URLs (`wiki_search`); a scalar that "
-    "returns a page's plain-text summary extract (`wiki_page`); and a table function returning a "
-    "page's rich summary row (`wiki_page_summary`). All run over the free official MediaWiki "
-    "Action API + REST summary endpoint (no key). Language-selectable via `lang` and usable "
-    "against any MediaWiki wiki via `api_url`. Use it for RAG, knowledge grounding, and fact "
-    "lookup. Retrieved text is CC-BY-SA -- attribution and share-alike are the caller's "
-    "responsibility."
+    "Discover Wikipedia articles, retrieve summaries and resolve article identity for knowledge enrichment. "
+    "Language-selectable MediaWiki APIs provide article text, canonical source URLs and associated Wikibase IDs. "
+    "Use article identity to connect text with structured knowledge. Missing pages have explicit null/empty "
+    "semantics documented on each function. Retrieved Wikipedia article text is CC-BY-SA."
 )
 
 _SCHEMA_DESCRIPTION_MD = (
-    "# wiki.main\n\n"
-    "Wikipedia / MediaWiki full-text search and page-summary retrieval functions over the free "
-    "MediaWiki API.\n\n"
-    "Use it to find articles by keyword, ranked by relevance, and then to fetch a known "
-    "page's plain-text summary extract, either as a single value per row or as a rich row "
-    "carrying the extract, canonical URL, thumbnail, and page id. Any language edition of "
-    "Wikipedia, or any other MediaWiki wiki via its API URL, can be targeted.\n\n"
-    "Retrieved content is **CC-BY-SA**; attribution and share-alike are the caller's "
-    "responsibility."
+    "# Article discovery and identity\n\n"
+    "Find encyclopedic context for local records or a retrieval pipeline. Results carry canonical URLs "
+    "for attribution and language selection determines the wiki edition.\n\n"
+    "## Connecting knowledge\n\n"
+    "Known article titles resolve through redirects to their associated Wikibase item, providing a bridge "
+    "from prose to structured knowledge. Labels alone are not reliable entity identifiers. Custom MediaWiki "
+    "sites may point at their own Wikibase repository.\n\n"
+    "Wikipedia article text is **CC-BY-SA**; attribution and share-alike are the caller's responsibility."
 )
 
 # VGI413/VGI408-412: the schema's ordered category registry (navigation / SEO).
@@ -232,9 +207,40 @@ _AGENT_TEST_TASKS = json.dumps(
     ensure_ascii=False,
 )
 
+_AGENT_TEST_TASKS = json.dumps(
+    json.loads(_AGENT_TEST_TASKS)
+    + [
+        {
+            "name": "article_wikidata_id",
+            "prompt": "Return the Wikidata ID associated with the English Wikipedia article 'Douglas Adams'.",
+        },
+        {"name": "wikidata_label", "prompt": "Return the English label for Wikidata entity Q42."},
+        {
+            "name": "wikidata_birth",
+            "prompt": "Return Q42's birth-date string from P569, preserving the upstream time representation.",
+        },
+        {
+            "name": "wikidata_qualifiers",
+            "prompt": "For Q42's spouse statements (P26), list the distinct qualifier property IDs in property order.",
+        },
+        {
+            "name": "wikidata_sources",
+            "prompt": "Return whether Q42's instance-of statements (P31) have any reference snaks.",
+        },
+        {
+            "name": "wikidata_discovery",
+            "prompt": "Search Wikidata for 'Douglas Adams' with three candidates; return whether any were found.",
+        },
+        {
+            "name": "wikidata_graph",
+            "prompt": "Use SPARQL ASK to check whether Wikidata Q42 has any outgoing RDF triples. Return one boolean.",
+        },
+    ]
+)
+
 _CATALOG_TAGS = {
-    "vgi.title": "Wikipedia",
-    "vgi.subtitle": "Search Wikipedia and other MediaWiki sites and fetch page text and summaries from SQL.",
+    "vgi.title": "Wikipedia and Wikidata",
+    "vgi.subtitle": "Connect Wikipedia articles with Wikidata statements and graph queries from SQL.",
     "vgi.agent_test_tasks": _AGENT_TEST_TASKS,
     "vgi.keywords": keywords_json(_CATALOG_KEYWORDS),
     "vgi.doc_llm": _CATALOG_DESCRIPTION_LLM,
@@ -249,7 +255,7 @@ _CATALOG_TAGS = {
 _WIKI_CATALOG = Catalog(
     name="wiki",
     default_schema="main",
-    comment="Wikipedia / MediaWiki full-text search and page retrieval for SQL / RAG (free MediaWiki API, no key)",
+    comment="Wikipedia articles, Wikidata statements and graph queries for SQL",
     tags=_CATALOG_TAGS,
     source_url="https://github.com/Query-farm/vgi-wikipedia",
     schemas=[
@@ -270,8 +276,9 @@ _WIKI_CATALOG = Catalog(
                 "category": "search",
                 "topic": "wikipedia-retrieval",
             },
-            functions=[*SCALAR_FUNCTIONS, *TABLE_FUNCTIONS, *PAGE_TABLE_FUNCTIONS],
+            functions=[*SCALAR_FUNCTIONS, *TABLE_FUNCTIONS, *PAGE_TABLE_FUNCTIONS, WikiEntity],
         ),
+        WIKIDATA_SCHEMA,
     ],
 )
 

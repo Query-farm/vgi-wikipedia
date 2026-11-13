@@ -1,7 +1,7 @@
 [project]
 name = "vgi-wikipedia"
-version = "0.4.0"
-description = "Wikipedia / MediaWiki full-text search and page retrieval as VGI DuckDB SQL functions (for RAG / retrieval)"
+version = "0.5.0"
+description = "Wikipedia articles, Wikidata statements and SPARQL graph queries as VGI DuckDB SQL functions"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { file = "LICENSE" }
@@ -26,17 +26,18 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "vgi-python>=0.51.0",
+    "vgi-python>=0.51.1,<0.52",
     "httpx>=0.27",
     "pyarrow",
+    "rdflib>=7.1,<8",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "duckdb==2.0.0",
     "pytest>=8",
     "ruff>=0.6",
     "mypy>=1.10",
-    "pydoclint>=0.5",
     "pyarrow-stubs",
 ]
 # HTTP transport: the worker can serve over HTTP (`wikipedia_worker.py --http`,
@@ -44,12 +45,12 @@ dev = [
 # `http` extra (waitress). CI's http transport leg installs this via
 # `uv sync --extra http`.
 http = [
-    "vgi-python[http]>=0.51.0",
+    "vgi-python[http]>=0.51.1,<0.52",
 ]
 # HTTP-serving extra installed by the Docker image (`pip install '.[serve]'`).
 # Same contents as `http`; named `serve` to match the shared docker convention.
 serve = [
-    "vgi-python[http]>=0.51.0",
+    "vgi-python[http]>=0.51.1,<0.52",
 ]
 
 [project.scripts]

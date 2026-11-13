@@ -54,7 +54,9 @@ def _process_params(func_cls: type, args: Arguments, *, settings=None, secrets=N
         function_type=FunctionType.TABLE,
     )
     bind_resp = func_cls.bind(bind_req)
-    init_req = InitRequest(bind_call=bind_req, output_schema=bind_resp.output_schema)
+    init_req = InitRequest(
+        bind_call=bind_req, output_schema=bind_resp.output_schema, bind_opaque_data=bind_resp.opaque_data
+    )
     init_resp = func_cls.global_init(init_req)
     storage = FunctionStorageSqlite(":memory:")
     return ProcessParams(

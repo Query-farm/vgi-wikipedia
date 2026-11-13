@@ -1,8 +1,9 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http]>=0.51.0",
+#     "vgi-python[http]>=0.51.1,<0.52",
 #     "httpx>=0.27",
+#     "rdflib>=7.1,<8",
 # ]
 # ///
 """Repo-root stdio entry for the Wikipedia worker (thin PEP 723 shim).
@@ -20,7 +21,7 @@ extension can spawn it directly::
 
 LICENSING: the worker code is MIT. CONTENT retrieved from Wikipedia / Wikimedia
 projects is **CC-BY-SA** (text) -- attribution and share-alike are the user's
-responsibility. See README.md.
+responsibility. Wikidata structured data is CC0. See README.md.
 """
 
 from __future__ import annotations

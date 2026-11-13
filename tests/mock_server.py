@@ -28,6 +28,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+from tests import wikidata_mock
+
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
@@ -50,6 +52,13 @@ class _Handler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         qs = urllib.parse.parse_qs(parsed.query)
+
+        with self.server.request_lock:  # type: ignore[attr-defined]
+            self.server.requests.append((path, qs))  # type: ignore[attr-defined]
+        structured = wikidata_mock.action(qs)
+        if structured is not None:
+            self._send(200, json.dumps(structured).encode())
+            return
 
         if path == "/boom":
             self._send(500, b'{"error": "boom"}')
@@ -99,6 +108,19 @@ class _Handler(BaseHTTPRequestHandler):
 
         self._send(404, b'{"error": "no route"}')
 
+    def do_POST(self) -> None:  # noqa: N802
+        data = self.rfile.read(int(self.headers.get("Content-Length", "0"))).decode()
+        qs = urllib.parse.parse_qs(data)
+        with self.server.request_lock:  # type: ignore[attr-defined]
+            self.server.requests.append((self.path, qs))  # type: ignore[attr-defined]
+        if self.path == "/sparql":
+            try:
+                self._send(200, wikidata_mock.sparql(qs["query"][0]))
+            except Exception:
+                self._send(400, b'{"error":"invalid SPARQL"}')
+        else:
+            self._send(404, b'{"error":"no route"}')
+
 
 class MockServer:
     """A threaded canned-response MediaWiki server with a stable ``base`` URL."""
@@ -107,6 +129,8 @@ class MockServer:
         self._httpd = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
         self._httpd.flaky_lock = threading.Lock()  # type: ignore[attr-defined]
         self._httpd.flaky_remaining = flaky  # type: ignore[attr-defined]
+        self._httpd.request_lock = threading.Lock()  # type: ignore[attr-defined]
+        self._httpd.requests = []  # type: ignore[attr-defined]
         self._thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
 
     @property
@@ -118,6 +142,10 @@ class MockServer:
     def api_url(self) -> str:
         """The api.php URL to hand the worker as VGI_WIKIPEDIA_API_URL."""
         return f"{self.base}/w/api.php"
+
+    @property
+    def requests(self) -> list[tuple[str, dict[str, list[str]]]]:
+        return list(self._httpd.requests)  # type: ignore[attr-defined]
 
     def __enter__(self) -> MockServer:
         self._thread.start()

@@ -1,6 +1,6 @@
 """Polite MediaWiki HTTP client: search + page summary/extract.
 
-This is the only module that touches the network. It applies the
+This module handles article HTTP; wikidata.client handles structured data. It applies the
 network-worker discipline uniformly:
 
 * **Descriptive User-Agent.** The MediaWiki API *requires* a real, identifying

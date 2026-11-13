@@ -1,0 +1,128 @@
+# name: test/sql/wikidata.test
+# description: Structured statements and graph queries through every VGI transport
+# group: [vgi_wikipedia]
+
+require-env VGI_WIKIPEDIA_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '{VGI_WIKIPEDIA_WORKER}');
+
+query TT
+SELECT title, entity_id FROM wiki.main.wiki_entity('DNA');
+----
+Douglas Adams	Q42
+
+query TTT
+SELECT entity_id, label, label_language FROM wiki.wikidata.entity(['Q42']);
+----
+Q42	Douglas Adams	mul
+
+query I
+SELECT missing FROM wiki.wikidata.entity(['Q404']);
+----
+true
+
+query I
+SELECT count(*) FROM wiki.wikidata.search('Douglas Adams', count := 75);
+----
+75
+
+statement ok
+CREATE TEMP TABLE reading_list AS SELECT 'Q42' AS id, 5 AS rating;
+
+query TI
+SELECT e.label, r.rating FROM reading_list r
+JOIN wiki.wikidata.entity(['Q42']) e ON r.id = e.entity_id;
+----
+Douglas Adams	5
+
+query TT
+SELECT value.entity_id, rank FROM wiki.wikidata.statements(['Q42'], property_id := 'P26');
+----
+Q14623681	normal
+
+query TI
+SELECT value.time, value.time_precision FROM wiki.wikidata.statements(['Q42'], property_id := 'P569');
+----
++1952-03-11T00:00:00Z	11
+
+query T
+SELECT q.property_id FROM wiki.wikidata.statements(['Q42'], property_id := 'P26') s
+JOIN wiki.wikidata.qualifiers(['Q42'], property_id := 'P26') q
+USING (requested_id, statement_id, entity_revision, source_api) ORDER BY q.property_id;
+----
+P1534
+P580
+P582
+
+query I
+SELECT count(DISTINCT reference_hash)
+FROM wiki.wikidata.statement_references(['Q42'], property_id := 'P26');
+----
+1
+
+query I
+SELECT count(*) FROM wiki.wikidata.statements(['Q404']);
+----
+0
+
+query TTTI
+SELECT v.value, v.datatype, label.language, missing IS NULL
+FROM wiki.wikidata.sparql('SELECT ?v ?label ?missing WHERE {
+ VALUES (?v ?label) { (42 "Adams"@en) }
+ OPTIONAL { <urn:absent> <urn:p> ?missing }
+}');
+----
+42	http://www.w3.org/2001/XMLSchema#integer	en	true
+
+query I
+SELECT answer FROM wiki.wikidata.sparql('ASK {}');
+----
+true
+
+query I
+SELECT count(*) FROM wiki.wikidata.sparql('SELECT ?v WHERE {<urn:absent> <urn:p> ?v}');
+----
+0
+
+query TT
+SELECT ancestor.kind, ancestor.value FROM wiki.wikidata.sparql('SELECT ?ancestor WHERE {
+ <http://www.wikidata.org/entity/Q42>
+ <http://www.wikidata.org/prop/direct/P31>/<http://www.wikidata.org/prop/direct/P279>* ?ancestor
+}') ORDER BY ancestor.value;
+----
+iri	http://www.wikidata.org/entity/Q215627
+iri	http://www.wikidata.org/entity/Q5
+
+# More than two Arrow batches, with aggregate values to catch duplicate/lost rows.
+query II
+SELECT count(*), sum(CAST(n.value AS BIGINT)) FROM wiki.wikidata.sparql(
+ 'SELECT ?n WHERE {
+ VALUES ?a {0 1 2 3 4 5 6 7 8 9}
+ VALUES ?b {0 1 2 3 4 5 6 7 8 9}
+ VALUES ?c {0 1 2 3 4 5 6 7 8 9 10 11}
+ BIND(?a + 10 * ?b + 100 * ?c AS ?n)
+ }');
+----
+1200	719400
+
+statement error
+SELECT * FROM wiki.wikidata.entity(['invalid']);
+----
+Q/P IDs
+
+statement error
+SELECT * FROM wiki.wikidata.sparql('DELETE WHERE {?s ?p ?o}');
+----
+read-only
+
+statement error
+SELECT * FROM wiki.wikidata.sparql('SELECT ?n WHERE {VALUES ?n {1 2 3}}', max_rows := 2);
+----
+max_rows
+
+statement ok
+DETACH wiki;

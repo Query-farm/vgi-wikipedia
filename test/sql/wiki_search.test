@@ -30,9 +30,10 @@ ATTACH 'wiki' AS wiki (TYPE vgi, LOCATION '{VGI_WIKIPEDIA_WORKER}');
 # ============================================================================
 
 query II
-SELECT catalog_name, schema_name FROM information_schema.schemata WHERE catalog_name = 'wiki';
+SELECT catalog_name, schema_name FROM information_schema.schemata WHERE catalog_name = 'wiki' ORDER BY schema_name;
 ----
 wiki	main
+wiki	wikidata
 
 # ============================================================================
 # Unified output schema is exactly (title, snippet, pageid, wordcount, url, lang, extra)

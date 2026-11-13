@@ -18,3 +18,31 @@ tasks:
     reference_sql: "SELECT wiki.main.wiki_page('DuckDB') IS NOT NULL AS has_extract"
     ignore_column_names: true
     unordered: true
+  - name: article_wikidata_id
+    reference_sql: "SELECT entity_id FROM wiki.main.wiki_entity('Douglas Adams')"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_label
+    reference_sql: "SELECT label FROM wiki.wikidata.entity(['Q42'])"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_birth
+    reference_sql: "SELECT value.time FROM wiki.wikidata.statements(['Q42'], property_id := 'P569')"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_qualifiers
+    reference_sql: "SELECT DISTINCT property_id FROM wiki.wikidata.qualifiers(['Q42'], property_id := 'P26') ORDER BY property_id"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_sources
+    reference_sql: "SELECT count(*) > 0 FROM wiki.wikidata.statement_references(['Q42'], property_id := 'P31')"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_discovery
+    reference_sql: "SELECT count(*) > 0 FROM wiki.wikidata.search('Douglas Adams', count := 3)"
+    ignore_column_names: true
+    unordered: true
+  - name: wikidata_graph
+    reference_sql: "SELECT answer FROM wiki.wikidata.sparql('ASK { <http://www.wikidata.org/entity/Q42> ?p ?o }')"
+    ignore_column_names: true
+    unordered: true

@@ -1,8 +1,9 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http,oauth]>=0.51.0",
+#     "vgi-python[http,oauth]>=0.51.1,<0.52",
 #     "httpx>=0.27",
+#     "rdflib>=7.1,<8",
 # ]
 # ///
 """HTTP entrypoint for the Wikipedia worker.
