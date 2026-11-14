@@ -39,8 +39,9 @@ ARTICLE_WITH_ENTITY = {
 
 LABELLED_STATEMENTS = {
     "description": (
-        "Douglas Adams's (Q42) best-ranked birth/death dates and places, each labelled with "
-        "its property's human-readable name by joining statements to the property entities"
+        "Douglas Adams's (Q42) best-ranked birth/death dates and places (places as item IDs), "
+        "each labelled with its property's human-readable name by joining statements to the "
+        "property entities"
     ),
     "sql": (
         "SELECT p.label AS property, coalesce(s.value.time, s.value.entity_id) AS value "
