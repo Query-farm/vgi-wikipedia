@@ -1,0 +1,25 @@
+{
+  "kind": "Unmodified recorded public Wikidata API response",
+  "license": "CC0",
+  "license_url": "https://www.wikidata.org/wiki/Wikidata:Licensing",
+  "source_api": "https://www.wikidata.org/w/api.php",
+  "request_parameters": {
+    "action": "wbgetentities",
+    "ids": "Q60|Q84|Q90",
+    "props": "labels|descriptions|aliases|sitelinks|claims|info",
+    "redirects": "yes",
+    "format": "json",
+    "maxlag": "5"
+  },
+  "request_url": "https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q60%7CQ84%7CQ90&props=labels%7Cdescriptions%7Caliases%7Csitelinks%7Cclaims%7Cinfo&redirects=yes&format=json&maxlag=5",
+  "retrieved_at_utc": "2026-11-14T10:39:37.151032+00:00",
+  "http_status": 200,
+  "raw_bytes": 1241534,
+  "raw_sha256": "ebd72cbfdd866ce076792f96e359af27c7a0b55053776005cb2da96062c8199e",
+  "gzip_sha256": "87e6c8bf266f05ada32bd235942e3c9d08f758b7fbee0405990c0bc54cc84d40",
+  "entity_revisions": {
+    "Q60": 2568190757,
+    "Q84": 2568561940,
+    "Q90": 2567952526
+  }
+}

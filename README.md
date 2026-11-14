@@ -403,3 +403,8 @@ Written by [Query.Farm](https://query.farm).
 
 Copyright 2026 Query Farm LLC - https://query.farm
 
+
+## Executable notebook
+
+See [the Wikidata SQL notebook](notebooks/README.md) for dated population statements,
+qualifier/reference joins, visualizations and a portable recorded/live example.
