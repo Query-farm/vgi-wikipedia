@@ -46,3 +46,11 @@ tasks:
     reference_sql: "SELECT answer FROM wiki.wikidata.sparql('ASK { <http://www.wikidata.org/entity/Q42> ?p ?o }')"
     ignore_column_names: true
     unordered: true
+  - name: article_birth_date
+    reference_sql: "SELECT s.value.time FROM wiki.main.wiki_entity('Ada Lovelace') AS e JOIN wiki.wikidata.statements(['Q7259'], property_id := 'P569') AS s USING (entity_id)"
+    ignore_column_names: true
+    unordered: true
+  - name: spouse_label_and_start
+    reference_sql: "SELECT p.label, q.value.time FROM wiki.wikidata.statements(['Q42'], property_id := 'P26') AS s JOIN wiki.wikidata.qualifiers(['Q42'], property_id := 'P26') AS q USING (source_api, entity_revision, requested_id, statement_id) JOIN wiki.wikidata.entity(['Q14623681']) AS p ON p.entity_id = s.value.entity_id WHERE q.property_id = 'P580'"
+    ignore_column_names: true
+    unordered: true

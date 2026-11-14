@@ -64,6 +64,14 @@ def action(parameters: dict[str, list[str]]) -> dict[str, Any] | None:
                 "pageprops": {"wikibase_item": "Q42"},
                 "fullurl": "https://en.wikipedia.org/wiki/Douglas_Adams",
             }
+        elif title == "DuckDB":
+            # Same page ID as the summary.json fixture so article joins line up.
+            page = {
+                "title": "DuckDB",
+                "pageid": 66475209,
+                "pageprops": {"wikibase_item": "Q111343643"},
+                "fullurl": "https://en.wikipedia.org/wiki/DuckDB",
+            }
         elif title == "No item":
             page = {"title": title, "pageid": 12}
         else:

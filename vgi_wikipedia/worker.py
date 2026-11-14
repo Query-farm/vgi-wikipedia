@@ -36,6 +36,7 @@ import json
 from vgi import Worker
 from vgi.catalog import Catalog, Schema
 
+from vgi_wikipedia.composed import MAIN_SCHEMA_COMPOSED
 from vgi_wikipedia.meta import keywords_json
 from vgi_wikipedia.scalars import SCALAR_FUNCTIONS
 from vgi_wikipedia.tables import TABLE_FUNCTIONS
@@ -124,6 +125,7 @@ _SCHEMA_EXAMPLE_QUERIES = json.dumps(
             "description": "Fetch the rich English summary row (title, extract, url) for DuckDB.",
             "sql": "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')",
         },
+        *MAIN_SCHEMA_COMPOSED,
     ],
     ensure_ascii=False,
 )
@@ -234,6 +236,22 @@ _AGENT_TEST_TASKS = json.dumps(
         {
             "name": "wikidata_graph",
             "prompt": "Use SPARQL ASK to check whether Wikidata Q42 has any outgoing RDF triples. Return one boolean.",
+        },
+        {
+            "name": "article_birth_date",
+            "prompt": (
+                "Starting from the English Wikipedia article 'Ada Lovelace', find the Wikidata item it is "
+                "linked to and return that item's date of birth (P569). Return one row with one VARCHAR "
+                "column: the upstream Wikibase time string, unchanged."
+            ),
+        },
+        {
+            "name": "spouse_label_and_start",
+            "prompt": (
+                "For Douglas Adams (Wikidata Q42), return the English label of his spouse (P26) and the "
+                "marriage start time from that statement's P580 qualifier. Return one row with two VARCHAR "
+                "columns in this order: spouse label, then the upstream Wikibase time string unchanged."
+            ),
         },
     ]
 )

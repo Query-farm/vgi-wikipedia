@@ -17,6 +17,14 @@ from vgi_rpc import ArrowSerializableDataclass
 from vgi_rpc.rpc import OutputCollector
 
 from vgi_wikipedia.client import WikiError, default_api_url
+from vgi_wikipedia.composed import (
+    ARTICLE_WITH_ENTITY,
+    LABELLED_STATEMENTS,
+    SOURCES_PER_STATEMENT,
+    SPOUSE_QUALIFIERS,
+    WIKIDATA_SCHEMA_COMPOSED,
+    as_function_example,
+)
 from vgi_wikipedia.wikidata.client import WikidataClient, endpoint
 from vgi_wikipedia.wikidata.parse import (
     ENTITY_SCHEMA,
@@ -442,11 +450,25 @@ def sql_type(data_type: pa.DataType) -> str:
 
 
 def describe(
-    function: Any, description: str, documentation: str, example: str, *, schema_name: str = "wikidata"
+    function: Any,
+    description: str,
+    documentation: str,
+    example: str,
+    *,
+    schema_name: str = "wikidata",
+    composed: tuple[dict[str, str], ...] = (),
 ) -> None:
-    """Attach consistent function metadata, examples and result column documentation."""
+    """Attach consistent function metadata, examples and result column documentation.
+
+    ``composed`` examples combine this function with other functions of the worker.
+    They hit live public APIs, so they join the described example lists but not
+    ``vgi.executable_examples``.
+    """
     function.Meta.description = description
-    function.Meta.examples = [FunctionExample(sql=example, description=description)]
+    function.Meta.examples = [
+        FunctionExample(sql=example, description=description),
+        *(as_function_example(c) for c in composed),
+    ]
     documentation += (
         "\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. "
         "cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its "
@@ -461,7 +483,7 @@ def describe(
         "vgi.doc_md": "## " + description + "\n\n" + documentation + "\n\n### SQL usage\n\n"
         "Batch entity IDs in one call, then join the returned rows to local SQL tables. "
         "Function arguments must be constants known when SQL binds.",
-        "vgi.example_queries": json.dumps([{"sql": example, "description": description}]),
+        "vgi.example_queries": json.dumps([{"sql": example, "description": description}, *composed]),
         "vgi.executable_examples": json.dumps([{"sql": example, "description": description}]),
     }
     if hasattr(function, "FIXED_SCHEMA"):
@@ -498,6 +520,7 @@ describe(
     "property_id filters main statement properties; rank=best selects preferred, otherwise normal, per property.",
     "SELECT property_id, count(*) AS statements FROM wiki.wikidata.statements(['Q42']) "
     "GROUP BY property_id ORDER BY property_id",
+    composed=(LABELLED_STATEMENTS,),
 )
 describe(
     Qualifiers,
@@ -508,6 +531,7 @@ describe(
     "Typed value and snak_type have the same semantics as statements. Repeated qualifiers retain index and hash.",
     "SELECT statement_property_id, count(*) AS qualifiers FROM wiki.wikidata.qualifiers(['Q42']) "
     "GROUP BY statement_property_id ORDER BY statement_property_id",
+    composed=(SPOUSE_QUALIFIERS,),
 )
 describe(
     References,
@@ -519,6 +543,7 @@ describe(
     "Typed values preserve source details.",
     "SELECT statement_property_id, count(*) AS reference_snaks FROM wiki.wikidata.statement_references(['Q42']) "
     "GROUP BY statement_property_id ORDER BY statement_property_id",
+    composed=(SOURCES_PER_STATEMENT,),
 )
 describe(
     Search,
@@ -538,6 +563,7 @@ describe(
     "The associated ID belongs to that site's Wikibase repository, which may differ from Wikidata.",
     "SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams') ORDER BY title",
     schema_name="main",
+    composed=(ARTICLE_WITH_ENTITY,),
 )
 describe(
     Sparql,
@@ -582,7 +608,9 @@ WIKIDATA_SCHEMA = Schema(
         "between observations; calls do not share a global transaction snapshot.\n\n"
         "Use [Wikidata](https://www.wikidata.org/) for structured public knowledge. "
         "Bound queries with explicit result and byte budgets, and retain source identity when joining observations.",
-        "vgi.example_queries": Entity.Meta.tags["vgi.example_queries"],
+        "vgi.example_queries": json.dumps(
+            [*json.loads(Entity.Meta.tags["vgi.example_queries"]), *WIKIDATA_SCHEMA_COMPOSED]
+        ),
         "vgi.categories": json.dumps(
             [{"name": "wikidata", "title": "Wikidata", "description": "Structured knowledge and graph queries."}]
         ),

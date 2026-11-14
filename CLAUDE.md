@@ -29,6 +29,8 @@ vgi_wikipedia/
   tables_page.py          wiki_page_summary table function (rich multi-column row)
   scalars.py              wiki_page scalar (arity overloads, positional-only)
   schema_utils.py         Arrow column-comment helper
+  composed.py             composed example queries (one SQL constant each), shared
+                          by schema lists and their driving function
   wikidata/               client.py: bounded Wikibase/SPARQL HTTP + TTL cache
                           parse.py: lossless statements and fixed Arrow schemas
                           sparql.py: SELECT/ASK validation and RDF term conversion

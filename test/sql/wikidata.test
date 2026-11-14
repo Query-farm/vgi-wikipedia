@@ -124,5 +124,33 @@ SELECT * FROM wiki.wikidata.sparql('SELECT ?n WHERE {VALUES ?n {1 2 3}}', max_ro
 ----
 max_rows
 
+# Composed examples (vgi_wikipedia/composed.py) against the fixture server.
+query TTT
+SELECT s.title, e.entity_id, s.url FROM wiki.main.wiki_page_summary('DuckDB') AS s
+JOIN wiki.main.wiki_entity('DuckDB') AS e USING (pageid) ORDER BY s.title;
+----
+DuckDB	Q111343643	https://en.wikipedia.org/wiki/DuckDB
+
+query TTT
+SELECT s.value.entity_id AS spouse, q.property_id AS qualifier,
+coalesce(q.value.time, q.value.entity_id) AS qualifier_value
+FROM wiki.wikidata.statements(['Q42'], property_id := 'P26') AS s
+JOIN wiki.wikidata.qualifiers(['Q42'], property_id := 'P26') AS q
+USING (source_api, entity_revision, requested_id, statement_id)
+ORDER BY spouse, qualifier;
+----
+Q14623681	P1534	Q99521170
+Q14623681	P580	+1991-11-25T00:00:00Z
+Q14623681	P582	+2001-05-11T00:00:00Z
+
+query TI
+SELECT s.value.entity_id AS class, count(DISTINCT r.reference_hash) AS sources
+FROM wiki.wikidata.statements(['Q42'], property_id := 'P31') AS s
+LEFT JOIN wiki.wikidata.statement_references(['Q42'], property_id := 'P31') AS r
+USING (source_api, entity_revision, requested_id, statement_id)
+GROUP BY s.statement_id, class ORDER BY s.statement_id;
+----
+Q5	3
+
 statement ok
 DETACH wiki;

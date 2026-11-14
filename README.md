@@ -168,8 +168,8 @@ The plain-text **summary extract** (lead paragraph) of a page, or NULL for a
 missing page / NULL input. Never errors a scan.
 
 ```sql
-SELECT wiki_page('DuckDB');          -- English
-SELECT wiki_page('DuckDB', 'fr');    -- French Wikipedia
+SELECT wiki.wiki_page('DuckDB');          -- English
+SELECT wiki.wiki_page('DuckDB', 'fr');    -- French Wikipedia
 ```
 
 ### `wiki_page_summary(title, lang := 'en', api_url := '')` → table
@@ -322,6 +322,16 @@ WITH hits AS (
   SELECT title, url, snippet FROM wiki.wiki_search('vector database', count := 10)
 )
 SELECT title, url, embed.embed(snippet) AS vec FROM hits;
+
+-- search, then fetch each top hit's lead paragraph with the wiki_page scalar
+SELECT h.title, wiki.wiki_page(h.title) AS summary
+FROM wiki.wiki_search('apache arrow', count := 3) AS h
+ORDER BY h.title;
+
+-- ground an article: its summary text and URL plus the linked Wikidata item
+SELECT s.title, e.entity_id, s.url, s.extract
+FROM wiki.wiki_page_summary('DuckDB') AS s
+JOIN wiki.wiki_entity('DuckDB') AS e USING (pageid);
 ```
 
 ## Configuration

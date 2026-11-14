@@ -48,6 +48,7 @@ from vgi_rpc import ArrowSerializableDataclass
 from vgi_rpc.rpc import OutputCollector
 
 from vgi_wikipedia.client import WikiClient, WikiError
+from vgi_wikipedia.composed import SEARCH_THEN_SUMMARIZE, as_function_example
 from vgi_wikipedia.meta import object_tags
 from vgi_wikipedia.parse import SearchRow, parse_search
 from vgi_wikipedia.schema_utils import field
@@ -149,6 +150,7 @@ _WIKI_SEARCH_EXAMPLE_QUERIES = json.dumps(
             "description": "Follow up to 3 sroffset pages of German results",
             "sql": "SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)",
         },
+        SEARCH_THEN_SUMMARIZE,
     ],
     ensure_ascii=False,
 )
@@ -313,6 +315,7 @@ class WikiSearch(TableFunctionGenerator[WikiSearchArgs, ScanState]):
                 sql="SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)",
                 description="Follow up to 3 sroffset pages of German results",
             ),
+            as_function_example(SEARCH_THEN_SUMMARIZE),
         ]
 
     @classmethod
