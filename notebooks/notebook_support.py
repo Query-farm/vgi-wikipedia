@@ -1,55 +1,82 @@
-"""Small presentation helpers for the Wikipedia notebook."""
+"""Recorded-source setup; analytical SQL and figures remain in each notebook."""
 
+from datetime import UTC, datetime
+import json
+import os
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from IPython.display import Markdown, display
+import certifi
 
-COLORS = {"same": "#267358", "changed": "#c57b40", "reference": "#456fba"}
+from replay import DiscoveryReplay, Replay
+
+_MANAGED = (
+    "VGI_WIKIPEDIA_API_URL",
+    "VGI_WIKIDATA_API_URL",
+    "VGI_WIKIDATA_SPARQL_URL",
+    "SSL_CERT_FILE",
+)
 
 
-def theme() -> None:
-    """Apply the shared notebook visual style."""
-    sns.set_theme(style="whitegrid", context="notebook", font="DejaVu Sans")
-    plt.rcParams.update(
-        {
-            "figure.dpi": 130,
-            "text.parse_math": False,
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "grid.color": "#e2e8e4",
-        }
+def configure(story: str, parameter: object, mode: str):
+    """Validate visible controls and select only the explicitly requested source."""
+    if mode not in ("recorded", "live"):
+        raise ValueError("DATA_MODE must be recorded or live.")
+    if story == "population":
+        if type(parameter) is not int or not 1800 <= parameter <= 2025:
+            raise ValueError("MIN_YEAR must be an integer from 1800 through 2025.")
+    elif story == "articles":
+        if type(parameter) is not int or not 1 <= parameter <= 1000:
+            raise ValueError("CONTEXT_CHARS must be an integer from 1 through 1000.")
+    elif story == "labels":
+        if parameter not in ("en", "fr"):
+            raise ValueError("LABEL_LANGUAGE must be en or fr.")
+    else:
+        raise ValueError("Unknown example story")
+    previous = {key: os.environ.get(key) for key in _MANAGED}
+    for key in _MANAGED[:-1]:
+        os.environ.pop(key, None)
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+    if mode == "recorded":
+        replay = Replay() if story == "population" else DiscoveryReplay(story)
+    else:
+        replay = None
+    article_api = "https://en.wikipedia.org/w/api.php"
+    entity_api = "https://www.wikidata.org/w/api.php"
+    sparql_api = "https://query.wikidata.org/sparql"
+    if replay is not None:
+        if story == "population":
+            entity_api = replay.url
+        else:
+            article_api = entity_api = replay.base + "/w/api.php"
+            sparql_api = replay.base + "/sparql"
+    os.environ["VGI_WIKIPEDIA_API_URL"] = article_api
+    os.environ["VGI_WIKIDATA_API_URL"] = entity_api
+    os.environ["VGI_WIKIDATA_SPARQL_URL"] = sparql_api
+    directory = Path(__file__).resolve().parent
+    manifest_path = (
+        directory
+        / ("fixtures" if story == "population" else "discovery_recordings")
+        / "manifest.json"
     )
+    manifest = json.loads(manifest_path.read_text())
+    return {
+        "replay": replay,
+        "previous": previous,
+        "manifest": manifest,
+        "article_api": article_api,
+        "entity_api": entity_api,
+        "sparql_api": sparql_api,
+        "run_started": datetime.now(UTC).isoformat(),
+        "query": (directory / "discovery_query.rq").read_text() if story == "labels" else None,
+    }
 
 
-def prose(text: str) -> None:
-    """Show a result-derived interpretation."""
-    display(Markdown(text))
-
-
-def finish(
-    fig: plt.Figure,
-    title: str,
-    subtitle: str,
-    filename: str,
-    *,
-    bottom: float = 0.08,
-    source: str = "Wikidata CC0 · VGI Wikipedia 0.5.0",
-) -> None:
-    """Label, embed and save a chart for visual review."""
-    fig.suptitle(title, x=0.08, y=0.98, ha="left", fontsize=18, weight="bold", color="#253d31")
-    fig.text(0.08, 0.90, subtitle, ha="left", fontsize=11, color="#52675a")
-    fig.text(
-        0.08,
-        0.025,
-        source,
-        ha="left",
-        fontsize=9,
-        color="#52675a",
-    )
-    fig.tight_layout(rect=(0.02, bottom, 1, 0.83))
-    directory = Path(__file__).resolve().parent / "validation/charts"
-    directory.mkdir(parents=True, exist_ok=True)
-    fig.savefig(directory / filename, dpi=150)
-    plt.show()
+def cleanup(state):
+    """Close this server and restore only environment keys changed during setup."""
+    if state["replay"] is not None:
+        state["replay"].close()
+    for key, value in state["previous"].items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value

@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "provenance": "Unmodified official public Wikimedia API response bytes, compressed reproducibly; structured data CC0, Wikipedia snippets/summaries CC BY-SA with source URLs recorded.",
+  "requests": [
+    {
+      "id": "article-search",
+      "file": "article-search.json.gz",
+      "source_url": "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Mercury&srlimit=6&sroffset=0&srprop=snippet%7Cwordcount%7Ctimestamp&format=json&formatversion=2",
+      "path": "/w/api.php",
+      "parameters": {
+        "action": "query",
+        "list": "search",
+        "srsearch": "Mercury",
+        "srlimit": "6",
+        "sroffset": "0",
+        "srprop": "snippet|wordcount|timestamp",
+        "format": "json",
+        "formatversion": "2"
+      },
+      "retrieved_at_utc": "2026-11-14T23:43:50.060384+00:00",
+      "raw_sha256": "bd09f212bf871e3acd26534f82a0728237c85d2ba03a868e90fbf3e3b5191dba",
+      "gzip_sha256": "3fe5ba68fbbe09f7801192d8ddc1588c319bdc3cad5f774daf13bb687fb579d1",
+      "content_type": "application/json; charset=utf-8",
+      "method": "GET"
+    },
+    {
+      "id": "summary-planet",
+      "file": "summary-planet.json.gz",
+      "source_url": "https://en.wikipedia.org/api/rest_v1/page/summary/Mercury_%28planet%29",
+      "path": "/api/rest_v1/page/summary/Mercury_%28planet%29",
+      "parameters": {},
+      "retrieved_at_utc": "2026-11-14T23:43:50.860115+00:00",
+      "raw_sha256": "e2c14d56e813ad1344b73cb02ac6d30ae420b941d209d10c45a1a32429809582",
+      "gzip_sha256": "db578c4feb8b2e0c0d6c102b7290fadb76c5ddc1fefb252b38c20ef8bf0714da",
+      "content_type": "application/json; charset=utf-8; profile=\"https://www.mediawiki.org/wiki/Specs/Summary/1.5.0\"",
+      "method": "GET"
+    },
+    {
+      "id": "identity-planet",
+      "file": "identity-planet.json.gz",
+      "source_url": "https://en.wikipedia.org/w/api.php?action=query&titles=Mercury+%28planet%29&redirects=1&prop=pageprops%7Cinfo&ppprop=wikibase_item&inprop=url&format=json&formatversion=2",
+      "path": "/w/api.php",
+      "parameters": {
+        "action": "query",
+        "titles": "Mercury (planet)",
+        "redirects": "1",
+        "prop": "pageprops|info",
+        "ppprop": "wikibase_item",
+        "inprop": "url",
+        "format": "json",
+        "formatversion": "2"
+      },
+      "retrieved_at_utc": "2026-11-14T23:43:51.704727+00:00",
+      "raw_sha256": "3cb272402f6ecad41cce0080e6b83a52d8b72bfba6747823e063116612418315",
+      "gzip_sha256": "5811b3ade1a4258ca2e2c3a25047490bde01237112175965509314f863b2c900",
+      "content_type": "application/json; charset=utf-8",
+      "method": "GET"
+    },
+    {
+      "id": "summary-element",
+      "file": "summary-element.json.gz",
+      "source_url": "https://en.wikipedia.org/api/rest_v1/page/summary/Mercury_%28element%29",
+      "path": "/api/rest_v1/page/summary/Mercury_%28element%29",
+      "parameters": {},
+      "retrieved_at_utc": "2026-11-14T23:43:52.494006+00:00",
+      "raw_sha256": "ae3f86e9742bbc4fd8cb1bd82229beabbcbaeb59589eef3c6c34c17a65c6310b",
+      "gzip_sha256": "dcb0f4225731747eac8acba7d2a907e989d98c595d030ee58ae90dae125e17a2",
+      "content_type": "application/json; charset=utf-8; profile=\"https://www.mediawiki.org/wiki/Specs/Summary/1.5.0\"",
+      "method": "GET"
+    },
+    {
+      "id": "identity-element",
+      "file": "identity-element.json.gz",
+      "source_url": "https://en.wikipedia.org/w/api.php?action=query&titles=Mercury+%28element%29&redirects=1&prop=pageprops%7Cinfo&ppprop=wikibase_item&inprop=url&format=json&formatversion=2",
+      "path": "/w/api.php",
+      "parameters": {
+        "action": "query",
+        "titles": "Mercury (element)",
+        "redirects": "1",
+        "prop": "pageprops|info",
+        "ppprop": "wikibase_item",
+        "inprop": "url",
+        "format": "json",
+        "formatversion": "2"
+      },
+      "retrieved_at_utc": "2026-11-14T23:43:53.326529+00:00",
+      "raw_sha256": "423e1472ce3f319647a7c209a5b364d66e6321afc9394440a95aa8496da92440",
+      "gzip_sha256": "6483bb7747dce037ec114a20991636036ad7c30e5539713c76a6b2a87a5e9130",
+      "content_type": "application/json; charset=utf-8",
+      "method": "GET"
+    },
+    {
+      "id": "entity-search",
+      "file": "entity-search.json.gz",
+      "source_url": "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=Mercury&language=en&uselang=en&type=item&limit=6&continue=0&format=json&maxlag=5",
+      "path": "/w/api.php",
+      "parameters": {
+        "action": "wbsearchentities",
+        "search": "Mercury",
+        "language": "en",
+        "uselang": "en",
+        "type": "item",
+        "limit": "6",
+        "continue": "0",
+        "format": "json",
+        "maxlag": "5"
+      },
+      "retrieved_at_utc": "2026-11-14T23:43:54.216562+00:00",
+      "raw_sha256": "bca998540c19dcd4b7ab67b59515b2f5725426229fbb9ba05346d8c055b6e589",
+      "gzip_sha256": "482b2d851fea3c42d51999752de320c8fa26b15acbda7a673eef0de38d18afef",
+      "content_type": "application/json; charset=utf-8",
+      "method": "GET"
+    },
+    {
+      "id": "typed-labels",
+      "file": "typed-labels.json.gz",
+      "source_url": "https://query.wikidata.org/sparql",
+      "path": "/sparql",
+      "parameters": {
+        "query": "SELECT ?item ?label ?atomicNumber WHERE {\n VALUES ?item { <http://www.wikidata.org/entity/Q308> <http://www.wikidata.org/entity/Q925> }\n ?item <http://www.w3.org/2000/01/rdf-schema#label> ?label .\n FILTER(LANG(?label) IN (\"en\", \"fr\"))\n OPTIONAL { ?item <http://www.wikidata.org/prop/direct/P1086> ?atomicNumber }\n} ORDER BY ?item LANG(?label)",
+        "format": "json"
+      },
+      "retrieved_at_utc": "2026-11-14T23:45:12.394469+00:00",
+      "raw_sha256": "f3120ed5d3c07d4ddd0665b1ba42dc87e8d302a791a1e91ac29bf6bebb6ae465",
+      "gzip_sha256": "7430d2957892dbe1919b4b4fe8e95231bbf868ef77a88f871ef9337f61707041",
+      "content_type": "application/sparql-results+json;charset=utf-8",
+      "method": "POST"
+    }
+  ]
+}

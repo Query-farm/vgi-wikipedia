@@ -1,0 +1,6 @@
+SELECT ?item ?label ?atomicNumber WHERE {
+ VALUES ?item { <http://www.wikidata.org/entity/Q308> <http://www.wikidata.org/entity/Q925> }
+ ?item <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+ FILTER(LANG(?label) IN ("en", "fr"))
+ OPTIONAL { ?item <http://www.wikidata.org/prop/direct/P1086> ?atomicNumber }
+} ORDER BY ?item LANG(?label)
