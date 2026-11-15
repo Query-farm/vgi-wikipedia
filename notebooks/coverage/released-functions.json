@@ -1,0 +1,576 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='wiki' ORDER BY schema_name,function_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "wiki",
+      "22592",
+      "main",
+      "wiki_entity",
+      null,
+      "table",
+      "Resolve a Wikipedia article to its Wikidata identity",
+      null,
+      {
+        "vgi.category": "page-retrieval",
+        "vgi.doc_llm": "Resolve a known article title, following MediaWiki redirects and reading wikibase_item from pageprops. Missing articles produce zero rows; articles without a Wikibase association have entity_id NULL. Use api_url for another MediaWiki site. The associated ID belongs to that site's Wikibase repository, which may differ from Wikidata.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Resolve a Wikipedia article to its Wikidata identity\n\nResolve a known article title, following MediaWiki redirects and reading wikibase_item from pageprops. Missing articles produce zero rows; articles without a Wikibase association have entity_id NULL. Use api_url for another MediaWiki site. The associated ID belongs to that site's Wikibase repository, which may differ from Wikidata.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams') ORDER BY title\", \"description\": \"Resolve a Wikipedia article to its Wikidata identity\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams') ORDER BY title\", \"description\": \"Resolve a Wikipedia article to its Wikidata identity\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"title\", \"type\": \"VARCHAR\", \"description\": \"Resolved article title after normalization and redirects.\"}, {\"name\": \"pageid\", \"type\": \"BIGINT\", \"description\": \"MediaWiki page ID.\"}, {\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Associated wikibase_item ID; NULL if the article has none.\"}, {\"name\": \"url\", \"type\": \"VARCHAR\", \"description\": \"Canonical article URL.\"}, {\"name\": \"lang\", \"type\": \"VARCHAR\", \"description\": \"Requested wiki language.\"}]",
+        "vgi.title": "Article identity"
+      },
+      null,
+      [
+        "title",
+        "timeout_ms",
+        "cache_seconds",
+        "max_rows",
+        "max_bytes",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22728,
+      [
+        "SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams') ORDER BY title"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "main",
+      "wiki_page",
+      null,
+      "scalar",
+      "Plain-text summary extract of an English Wikipedia page (NULL if missing)",
+      null,
+      {
+        "vgi.category": "page-retrieval",
+        "vgi.doc_llm": "Fetch the plain-text **lead-paragraph summary extract** of a Wikipedia (or any MediaWiki) article as a single `VARCHAR`.\n\nCall it as `wiki.main.wiki_page(title)` for English, or `wiki.main.wiki_page(title, lang)` to target another language wiki (e.g. `'de'`, `'fr'`). Because VGI scalars are positional-only, `lang` is a positional argument, not a `lang :=` named argument.\n\nUse it to enrich an existing column of titles with encyclopedic context for retrieval-augmented generation (RAG), fact lookup, or knowledge grounding -- it is set-based, so it resolves a whole column of titles in one scan.\n\n**Input:** an article title column (`VARCHAR`). **Output:** the summary extract `VARCHAR`.\n\n**Edge cases:** a missing page, a blank title, or a NULL input yields NULL for that row -- a single bad title never aborts the scan. A transport-level failure surfaces as a clean DuckDB error rather than crashing the worker. For the richer multi-column shape (title, extract, url, thumbnail_url, pageid) use the `wiki_page_summary` table function instead. Retrieved article text is **CC-BY-SA**: attribution and share-alike are the caller's responsibility.",
+        "vgi.doc_md": "# wiki_page\n\nReturns the plain-text summary **extract** (lead paragraphs) of a Wikipedia / MediaWiki page as a scalar `VARCHAR`, over the free MediaWiki REST summary endpoint (with an Action-API `prop=extracts` fallback).\n\n## Usage\n\nCall `wiki.main.wiki_page(title)` for English or `wiki.main.wiki_page(title, lang)` for another language edition. Scalars are positional-only, so the language is a positional argument (no `lang :=`). Because it is set-based, referencing a title column resolves the whole column in one scan. See the runnable examples in this function's `example_queries` metadata.\n\n## Notes\n\n- A missing page, blank title, or NULL input returns NULL (the scan is never aborted by one bad row).\n- Transport failures raise a clean DuckDB error; the worker never crashes.\n- Need the URL, thumbnail, or page id too? Use the `wiki_page_summary` table function.\n- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your responsibility.",
+        "vgi.example_queries": "[{\"description\": \"The English Wikipedia summary of DuckDB\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB')\"}, {\"description\": \"The German Wikipedia summary of DuckDB\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB', 'de')\"}]",
+        "vgi.keywords": "[\"wikipedia\", \"mediawiki\", \"wiki_page\", \"page summary\", \"extract\", \"lead paragraph\", \"article\", \"encyclopedia\", \"rag\", \"knowledge grounding\", \"fact lookup\", \"lookup\", \"scalar\", \"lang\", \"language\"]",
+        "vgi.title": "Wikipedia Page Summary Extract",
+        "vgi.executable_examples": "[{\"description\": \"English Wikipedia summary extract of the DuckDB article.\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB') AS summary\"}, {\"description\": \"German Wikipedia summary extract of the DuckDB article.\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB', 'de') AS summary\"}, {\"description\": \"A missing page yields NULL rather than an error.\", \"sql\": \"SELECT wiki.main.wiki_page('ThisPageDoesNotExist_zzz') IS NULL AS is_null\"}]"
+      },
+      "VARCHAR",
+      [
+        "title"
+      ],
+      [
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22727,
+      [
+        "SELECT wiki.main.wiki_page('DuckDB')"
+      ],
+      "CONSISTENT",
+      [
+        "wikipedia",
+        "mediawiki",
+        "rag"
+      ]
+    ],
+    [
+      "wiki",
+      "22592",
+      "main",
+      "wiki_page",
+      null,
+      "scalar",
+      "Plain-text summary extract of a Wikipedia page in a given language (NULL if missing)",
+      null,
+      {
+        "vgi.category": "page-retrieval",
+        "vgi.doc_llm": "Fetch the plain-text **lead-paragraph summary extract** of a Wikipedia (or any MediaWiki) article as a single `VARCHAR`.\n\nCall it as `wiki.main.wiki_page(title)` for English, or `wiki.main.wiki_page(title, lang)` to target another language wiki (e.g. `'de'`, `'fr'`). Because VGI scalars are positional-only, `lang` is a positional argument, not a `lang :=` named argument.\n\nUse it to enrich an existing column of titles with encyclopedic context for retrieval-augmented generation (RAG), fact lookup, or knowledge grounding -- it is set-based, so it resolves a whole column of titles in one scan.\n\n**Input:** an article title column (`VARCHAR`). **Output:** the summary extract `VARCHAR`.\n\n**Edge cases:** a missing page, a blank title, or a NULL input yields NULL for that row -- a single bad title never aborts the scan. A transport-level failure surfaces as a clean DuckDB error rather than crashing the worker. For the richer multi-column shape (title, extract, url, thumbnail_url, pageid) use the `wiki_page_summary` table function instead. Retrieved article text is **CC-BY-SA**: attribution and share-alike are the caller's responsibility.",
+        "vgi.doc_md": "# wiki_page\n\nReturns the plain-text summary **extract** (lead paragraphs) of a Wikipedia / MediaWiki page as a scalar `VARCHAR`, over the free MediaWiki REST summary endpoint (with an Action-API `prop=extracts` fallback).\n\n## Usage\n\nCall `wiki.main.wiki_page(title)` for English or `wiki.main.wiki_page(title, lang)` for another language edition. Scalars are positional-only, so the language is a positional argument (no `lang :=`). Because it is set-based, referencing a title column resolves the whole column in one scan. See the runnable examples in this function's `example_queries` metadata.\n\n## Notes\n\n- A missing page, blank title, or NULL input returns NULL (the scan is never aborted by one bad row).\n- Transport failures raise a clean DuckDB error; the worker never crashes.\n- Need the URL, thumbnail, or page id too? Use the `wiki_page_summary` table function.\n- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your responsibility.",
+        "vgi.example_queries": "[{\"description\": \"The English Wikipedia summary of DuckDB\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB')\"}, {\"description\": \"The German Wikipedia summary of DuckDB\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB', 'de')\"}]",
+        "vgi.keywords": "[\"wikipedia\", \"mediawiki\", \"wiki_page\", \"page summary\", \"extract\", \"lead paragraph\", \"article\", \"encyclopedia\", \"rag\", \"knowledge grounding\", \"fact lookup\", \"lookup\", \"scalar\", \"lang\", \"language\"]",
+        "vgi.title": "Wikipedia Page Summary Extract",
+        "vgi.executable_examples": "[{\"description\": \"English Wikipedia summary extract of the DuckDB article.\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB') AS summary\"}, {\"description\": \"German Wikipedia summary extract of the DuckDB article.\", \"sql\": \"SELECT wiki.main.wiki_page('DuckDB', 'de') AS summary\"}, {\"description\": \"A missing page yields NULL rather than an error.\", \"sql\": \"SELECT wiki.main.wiki_page('ThisPageDoesNotExist_zzz') IS NULL AS is_null\"}]"
+      },
+      "VARCHAR",
+      [
+        "title",
+        "lang"
+      ],
+      [
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22727,
+      [
+        "SELECT wiki.main.wiki_page('DuckDB', 'de')"
+      ],
+      "CONSISTENT",
+      [
+        "wikipedia",
+        "mediawiki",
+        "rag"
+      ]
+    ],
+    [
+      "wiki",
+      "22592",
+      "main",
+      "wiki_page_summary",
+      null,
+      "table",
+      "Page summary as a row: title, extract, url, thumbnail_url, pageid",
+      null,
+      {
+        "vgi.category": "page-retrieval",
+        "vgi.doc_llm": "Fetch the **rich, multi-column page summary** of a single Wikipedia (or any MediaWiki) article as a one-row table.\n\nCall it as a table function: `wiki.main.wiki_page_summary(title, lang := 'en', api_url := '')`. Being a table function, `lang` and `api_url` are `name :=` named arguments: `lang` picks the language wiki and `api_url` targets a non-Wikimedia wiki's api.php.\n\nUse it when you need more than just the extract text -- the canonical URL (for attribution / linking back), a thumbnail image, and the page id -- e.g. when enriching rows for retrieval-augmented generation (RAG), knowledge cards, or fact lookup. For just the extract text as a scalar over a whole column of titles, use the `wiki_page` scalar instead.\n\n**Returns** one row with columns `title` (resolved), `extract` (plain-text summary), `url`, `thumbnail_url` (may be NULL), and `pageid`.\n\n**Edge cases:** an empty title is rejected at bind time. A missing page yields **zero rows** (not an error). A transport failure surfaces as a clean DuckDB error. Retrieved text is **CC-BY-SA**: attribution and share-alike are the caller's responsibility.",
+        "vgi.doc_md": "# wiki_page_summary\n\nReturns a single Wikipedia / MediaWiki page's **rich summary** as a one-row table -- the multi-column companion to the `wiki_page` scalar -- over the free MediaWiki REST summary endpoint.\n\n## Usage\n\nCall it as a table function in `FROM`: the page title is the one positional argument, and `lang` and `api_url` are `name :=` named options. See the runnable examples in this function's `example_queries` metadata.\n\nThe page title is positional; the language wiki and a custom MediaWiki endpoint are named options. See the per-argument docs (`vgi_function_arguments`) for the exact names and defaults.\n\n## Notes\n\n- A missing page returns zero rows; it is not an error.\n- `thumbnail_url` may be NULL when the page has no lead image.\n- For just the extract over many titles, use the `wiki_page` scalar.\n- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your responsibility.",
+        "vgi.example_queries": "[{\"description\": \"The English Wikipedia summary row for DuckDB\", \"sql\": \"SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Rich English summary row for the DuckDB article.\", \"sql\": \"SELECT title, url, pageid FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')\"}, {\"description\": \"A missing page returns zero rows.\", \"sql\": \"SELECT count(*) AS n FROM wiki.main.wiki_page_summary('ThisPageDoesNotExist_zzz')\"}]",
+        "vgi.keywords": "[\"wikipedia\", \"mediawiki\", \"wiki_page_summary\", \"page summary\", \"extract\", \"url\", \"thumbnail\", \"pageid\", \"article\", \"encyclopedia\", \"rag\", \"retrieval\", \"knowledge grounding\", \"fact lookup\", \"lang\", \"language\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"title\", \"type\": \"VARCHAR\", \"description\": \"Resolved page title.\"}, {\"name\": \"extract\", \"type\": \"VARCHAR\", \"description\": \"Plain-text summary extract.\"}, {\"name\": \"url\", \"type\": \"VARCHAR\", \"description\": \"Canonical page URL.\"}, {\"name\": \"thumbnail_url\", \"type\": \"VARCHAR\", \"description\": \"Thumbnail image URL, if any (else NULL).\"}, {\"name\": \"pageid\", \"type\": \"BIGINT\", \"description\": \"MediaWiki page id.\"}]",
+        "vgi.title": "Wikipedia Page Summary Row"
+      },
+      null,
+      [
+        "title",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22729,
+      [
+        "SELECT title, extract, url FROM wiki.main.wiki_page_summary('DuckDB', lang := 'en')"
+      ],
+      null,
+      [
+        "wikipedia",
+        "mediawiki",
+        "rag",
+        "retrieval"
+      ]
+    ],
+    [
+      "wiki",
+      "22592",
+      "main",
+      "wiki_search",
+      null,
+      "table",
+      "Full-text search over Wikipedia (or any MediaWiki); returns the unified schema",
+      null,
+      {
+        "vgi.category": "search",
+        "vgi.doc_llm": "Run a **full-text search** over Wikipedia (or any MediaWiki) and stream back ranked article results, one row per hit.\n\nCall it as a table function: `wiki.main.wiki_search(query, lang := 'en', count := 10, max_pages := 1, api_url := '')`. Because it is a table function, the options are `name :=` named arguments: `lang` picks the language wiki, `count` is results per API page (1-50), `max_pages` bounds how many continuation (`sroffset`) pages to follow (1-20), and `api_url` targets a non-Wikimedia wiki's api.php.\n\nUse it for retrieval-augmented generation (RAG), candidate-document retrieval, fact lookup, and turning a topic into a ranked set of article titles and snippets you can then feed to `wiki_page` / `wiki_page_summary` or to vgi-embed / vgi-rerank.\n\n**Returns** the unified search schema: `title`, `snippet` (HTML stripped to plain text), `pageid`, `wordcount`, `url`, `lang`, and `extra` (a JSON `VARCHAR` of timestamp/size, NULL when absent).\n\n**Edge cases:** an empty query is rejected at bind time. Paging is sequential (each page's `sroffset` comes from the previous response) and pinned to a single scan worker so results are emitted exactly once. A transport failure surfaces as a clean DuckDB error. Retrieved text is **CC-BY-SA**: attribution and share-alike are the caller's responsibility.",
+        "vgi.doc_md": "# wiki_search\n\nFull-text search over Wikipedia / any MediaWiki, returning ranked results as a table, over the free MediaWiki Action API (`action=query&list=search`).\n\n## Usage\n\nCall it as a table function in `FROM`: the search query is the one positional argument, and `lang`, `count`, `max_pages`, and `api_url` are `name :=` named options. Raise `max_pages` to follow more `sroffset` continuation pages. See the runnable examples in this function's `example_queries` metadata.\n\nThe query is positional; the language wiki, page size, continuation depth, and a custom MediaWiki endpoint are named options. See the per-argument docs (`vgi_function_arguments`) for the exact names, defaults, and ranges.\n\n## Notes\n\n- Snippets are HTML-stripped to plain text; `extra` is a JSON string (use the `json` extension's `->>`).\n- Paging is sequential and emitted exactly once (pinned to one scan worker).\n- Retrieved text is **CC-BY-SA** -- attribution and share-alike are your responsibility.",
+        "vgi.example_queries": "[{\"description\": \"Top-10 English Wikipedia results for 'apache arrow'\", \"sql\": \"SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10)\"}, {\"description\": \"Follow up to 3 sroffset pages of German results\", \"sql\": \"SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Top-5 English results for 'apache arrow'.\", \"sql\": \"SELECT title, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 5)\"}, {\"description\": \"Count the rows returned for a query.\", \"sql\": \"SELECT count(*) AS n FROM wiki.main.wiki_search('duckdb', count := 5)\"}]",
+        "vgi.keywords": "[\"wikipedia\", \"mediawiki\", \"wiki_search\", \"full-text search\", \"search\", \"query\", \"ranked results\", \"snippet\", \"article\", \"encyclopedia\", \"rag\", \"retrieval\", \"knowledge grounding\", \"pagination\", \"sroffset\", \"lang\", \"language\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"title\", \"type\": \"VARCHAR\", \"description\": \"Article title.\"}, {\"name\": \"snippet\", \"type\": \"VARCHAR\", \"description\": \"Search-result excerpt, HTML stripped to plain text.\"}, {\"name\": \"pageid\", \"type\": \"BIGINT\", \"description\": \"MediaWiki page id.\"}, {\"name\": \"wordcount\", \"type\": \"INTEGER\", \"description\": \"Word count of the article.\"}, {\"name\": \"url\", \"type\": \"VARCHAR\", \"description\": \"Canonical article URL.\"}, {\"name\": \"lang\", \"type\": \"VARCHAR\", \"description\": \"Wiki language code the result came from.\"}, {\"name\": \"extra\", \"type\": \"VARCHAR\", \"description\": \"Extra fields (timestamp, size), JSON-encoded (else NULL).\"}]",
+        "vgi.title": "Wikipedia Full-Text Search"
+      },
+      null,
+      [
+        "query",
+        "max_pages",
+        "lang",
+        "count",
+        "api_url"
+      ],
+      [
+        "VARCHAR",
+        "BIGINT",
+        "VARCHAR",
+        "BIGINT",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22730,
+      [
+        "SELECT title, snippet, url FROM wiki.main.wiki_search('apache arrow', lang := 'en', count := 10)",
+        "SELECT title FROM wiki.main.wiki_search('duckdb', lang := 'de', count := 5, max_pages := 3)"
+      ],
+      null,
+      [
+        "search",
+        "wikipedia",
+        "mediawiki",
+        "rag",
+        "retrieval"
+      ]
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "entity",
+      null,
+      "table",
+      "Retrieve Wikidata entities in batches",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Supply ids as a `VARCHAR[]` of Q/P IDs. Returns one row per distinct requested ID, including missing=true for absent IDs. Redirects preserve requested_id and return canonical entity_id. Descriptions use exactly lang. Labels/aliases fall back only to shared mul values; actual languages are returned. entity_revision and source_api identify the source; sitelinks_json retains all sitelinks.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Retrieve Wikidata entities in batches\n\nSupply ids as a `VARCHAR[]` of Q/P IDs. Returns one row per distinct requested ID, including missing=true for absent IDs. Redirects preserve requested_id and return canonical entity_id. Descriptions use exactly lang. Labels/aliases fall back only to shared mul values; actual languages are returned. entity_revision and source_api identify the source; sitelinks_json retains all sitelinks.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT entity_id, label FROM wiki.wikidata.entity(['Q42']) ORDER BY entity_id\", \"description\": \"Retrieve Wikidata entities in batches\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT entity_id, label FROM wiki.wikidata.entity(['Q42']) ORDER BY entity_id\", \"description\": \"Retrieve Wikidata entities in batches\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"requested_id\", \"type\": \"VARCHAR\", \"description\": \"Requested ID, before entity redirects.\"}, {\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Canonical Wikibase entity ID.\"}, {\"name\": \"entity_revision\", \"type\": \"BIGINT\", \"description\": \"Entity revision returned by the API; use when joining snapshots.\"}, {\"name\": \"source_api\", \"type\": \"VARCHAR\", \"description\": \"Wikibase API supplying this row.\"}, {\"name\": \"missing\", \"type\": \"BOOLEAN\", \"description\": \"True when the requested entity does not exist.\"}, {\"name\": \"label\", \"type\": \"VARCHAR\", \"description\": \"Label in the requested language, falling back only to the shared mul label.\"}, {\"name\": \"label_language\", \"type\": \"VARCHAR\", \"description\": \"Actual label language, including mul for a shared label.\"}, {\"name\": \"description\", \"type\": \"VARCHAR\", \"description\": \"Description in the requested language.\"}, {\"name\": \"aliases\", \"type\": \"VARCHAR[]\", \"description\": \"Aliases in the requested language, falling back only to shared mul aliases.\"}, {\"name\": \"aliases_language\", \"type\": \"VARCHAR\", \"description\": \"Actual aliases language; NULL if no aliases are available.\"}, {\"name\": \"modified\", \"type\": \"VARCHAR\", \"description\": \"Original entity modification timestamp.\"}, {\"name\": \"sitelinks_json\", \"type\": \"VARCHAR\", \"description\": \"Complete sitelink map as JSON.\"}]",
+        "vgi.title": "Entity"
+      },
+      null,
+      [
+        "ids",
+        "timeout_ms",
+        "cache_seconds",
+        "max_rows",
+        "max_bytes",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR[]",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22731,
+      [
+        "SELECT entity_id, label FROM wiki.wikidata.entity(['Q42']) ORDER BY entity_id"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "qualifiers",
+      null,
+      "table",
+      "Read contextual qualifiers attached to Wikidata statements",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Returns one row per qualifier snak. Join to statements by source_api, entity_revision and statement_id; requested_id disambiguates redirected inputs. property_id argument selects the main statement property; result property_id is the qualifier property. Typed value and snak_type have the same semantics as statements. Repeated qualifiers retain index and hash.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Read contextual qualifiers attached to Wikidata statements\n\nReturns one row per qualifier snak. Join to statements by source_api, entity_revision and statement_id; requested_id disambiguates redirected inputs. property_id argument selects the main statement property; result property_id is the qualifier property. Typed value and snak_type have the same semantics as statements. Repeated qualifiers retain index and hash.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT statement_property_id, count(*) AS qualifiers FROM wiki.wikidata.qualifiers(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id\", \"description\": \"Read contextual qualifiers attached to Wikidata statements\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT statement_property_id, count(*) AS qualifiers FROM wiki.wikidata.qualifiers(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id\", \"description\": \"Read contextual qualifiers attached to Wikidata statements\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"requested_id\", \"type\": \"VARCHAR\", \"description\": \"Requested ID, before entity redirects.\"}, {\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Canonical Wikibase entity ID.\"}, {\"name\": \"entity_revision\", \"type\": \"BIGINT\", \"description\": \"Entity revision returned by the API; use when joining snapshots.\"}, {\"name\": \"source_api\", \"type\": \"VARCHAR\", \"description\": \"Wikibase API supplying this row.\"}, {\"name\": \"statement_id\", \"type\": \"VARCHAR\", \"description\": \"Statement that this qualifier qualifies.\"}, {\"name\": \"statement_property_id\", \"type\": \"VARCHAR\", \"description\": \"Main property of the qualified statement.\"}, {\"name\": \"qualifier_index\", \"type\": \"BIGINT\", \"description\": \"Zero-based position within this qualifier property.\"}, {\"name\": \"qualifier_hash\", \"type\": \"VARCHAR\", \"description\": \"Upstream qualifier hash, if supplied.\"}, {\"name\": \"property_id\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property ID.\"}, {\"name\": \"snak_type\", \"type\": \"VARCHAR\", \"description\": \"value, somevalue (unknown), or novalue (explicitly no value).\"}, {\"name\": \"datatype\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property datatype.\"}, {\"name\": \"value\", \"type\": \"STRUCT(\\\"entity_id\\\" VARCHAR, \\\"text\\\" VARCHAR, \\\"language\\\" VARCHAR, \\\"time\\\" VARCHAR, \\\"time_precision\\\" INTEGER, \\\"timezone\\\" INTEGER, \\\"before\\\" BIGINT, \\\"after\\\" BIGINT, \\\"calendar_model\\\" VARCHAR, \\\"amount\\\" VARCHAR, \\\"lower_bound\\\" VARCHAR, \\\"upper_bound\\\" VARCHAR, \\\"unit\\\" VARCHAR, \\\"latitude\\\" DOUBLE, \\\"longitude\\\" DOUBLE, \\\"coordinate_precision\\\" DOUBLE, \\\"globe\\\" VARCHAR, \\\"raw_json\\\" VARCHAR)\", \"description\": \"Typed value components and lossless raw JSON; NULL for somevalue/novalue.\"}]",
+        "vgi.title": "Qualifiers"
+      },
+      null,
+      [
+        "ids",
+        "timeout_ms",
+        "rank",
+        "property_id",
+        "cache_seconds",
+        "max_rows",
+        "max_bytes",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR[]",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22732,
+      [
+        "SELECT statement_property_id, count(*) AS qualifiers FROM wiki.wikidata.qualifiers(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "search",
+      null,
+      "table",
+      "Search Wikidata labels and aliases",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Returns the requested top count candidates using bounded continuation. This is entity discovery, not guaranteed identity resolution. Choose item or property with entity_type. Results include the matched label/alias and language; missing optional fields are NULL.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Search Wikidata labels and aliases\n\nReturns the requested top count candidates using bounded continuation. This is entity discovery, not guaranteed identity resolution. Choose item or property with entity_type. Results include the matched label/alias and language; missing optional fields are NULL.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT entity_id, label FROM wiki.wikidata.search('Douglas Adams', count := 3) ORDER BY entity_id\", \"description\": \"Search Wikidata labels and aliases\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT entity_id, label FROM wiki.wikidata.search('Douglas Adams', count := 3) ORDER BY entity_id\", \"description\": \"Search Wikidata labels and aliases\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Matching Wikibase entity ID.\"}, {\"name\": \"label\", \"type\": \"VARCHAR\", \"description\": \"Entity label returned by search.\"}, {\"name\": \"description\", \"type\": \"VARCHAR\", \"description\": \"Entity description returned by search.\"}, {\"name\": \"url\", \"type\": \"VARCHAR\", \"description\": \"Entity concept URI returned by search.\"}, {\"name\": \"match_text\", \"type\": \"VARCHAR\", \"description\": \"Label or alias that matched.\"}, {\"name\": \"match_language\", \"type\": \"VARCHAR\", \"description\": \"Language of the matching text.\"}]",
+        "vgi.title": "Search"
+      },
+      null,
+      [
+        "query",
+        "timeout_ms",
+        "max_bytes",
+        "lang",
+        "entity_type",
+        "max_rows",
+        "cache_seconds",
+        "count",
+        "api_url"
+      ],
+      [
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22733,
+      [
+        "SELECT entity_id, label FROM wiki.wikidata.search('Douglas Adams', count := 3) ORDER BY entity_id"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "sparql",
+      null,
+      "table",
+      "Query Wikidata relationships with read-only SPARQL",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Accepts SELECT and ASK; complete query syntax is validated before sending it to the configured endpoint. SELECT columns are RDF term `STRUCT`s (kind, value, datatype, language), with SQL NULL for unbound variables. ASK returns answer `BOOLEAN`. Supports graph patterns, joins, aggregates and property paths implemented by the endpoint. The query runs at bind time, including DESCRIBE/EXPLAIN; execution reuses that result. No automatic pagination or LIMIT rewriting is performed. max_rows overflow fails instead of truncating. Use endpoint_url to select the desired WDQS dataset or another SPARQL query service.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Query Wikidata relationships with read-only SPARQL\n\nAccepts SELECT and ASK; complete query syntax is validated before sending it to the configured endpoint. SELECT columns are RDF term `STRUCT`s (kind, value, datatype, language), with SQL NULL for unbound variables. ASK returns answer `BOOLEAN`. Supports graph patterns, joins, aggregates and property paths implemented by the endpoint. The query runs at bind time, including DESCRIBE/EXPLAIN; execution reuses that result. No automatic pagination or LIMIT rewriting is performed. max_rows overflow fails instead of truncating. Use endpoint_url to select the desired WDQS dataset or another SPARQL query service.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT answer FROM wiki.wikidata.sparql('ASK { <http://www.wikidata.org/entity/Q42> ?p ?o }')\", \"description\": \"Query Wikidata relationships with read-only SPARQL\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT answer FROM wiki.wikidata.sparql('ASK { <http://www.wikidata.org/entity/Q42> ?p ?o }')\", \"description\": \"Query Wikidata relationships with read-only SPARQL\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_dynamic_columns_md": "\nSELECT returns one column per projected variable:\n\n| Name | Type | Description |\n| --- | --- | --- |\n| variable | STRUCT(kind VARCHAR, value VARCHAR, datatype VARCHAR, language VARCHAR) | RDF term or NULL if unbound. |\n\nASK returns:\n\n| Name | Type | Description |\n| --- | --- | --- |\n| answer | BOOLEAN | Whether the graph pattern matches. |\n",
+        "vgi.title": "Sparql"
+      },
+      null,
+      [
+        "query",
+        "max_rows",
+        "max_bytes",
+        "endpoint_url",
+        "timeout_ms",
+        "cache_seconds"
+      ],
+      [
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22734,
+      [
+        "SELECT answer FROM wiki.wikidata.sparql('ASK { <http://www.wikidata.org/entity/Q42> ?p ?o }')"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "statement_references",
+      null,
+      "table",
+      "Read sources attached to Wikidata statements",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Returns one row per reference snak. Join to statements by source_api, entity_revision and statement_id; requested_id distinguishes redirected inputs. reference_index and reference_hash group snaks belonging to the same source. property_id argument filters main statement properties; result property_id identifies the reference property. Typed values preserve source details.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Read sources attached to Wikidata statements\n\nReturns one row per reference snak. Join to statements by source_api, entity_revision and statement_id; requested_id distinguishes redirected inputs. reference_index and reference_hash group snaks belonging to the same source. property_id argument filters main statement properties; result property_id identifies the reference property. Typed values preserve source details.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT statement_property_id, count(*) AS reference_snaks FROM wiki.wikidata.statement_references(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id\", \"description\": \"Read sources attached to Wikidata statements\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT statement_property_id, count(*) AS reference_snaks FROM wiki.wikidata.statement_references(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id\", \"description\": \"Read sources attached to Wikidata statements\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"requested_id\", \"type\": \"VARCHAR\", \"description\": \"Requested ID, before entity redirects.\"}, {\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Canonical Wikibase entity ID.\"}, {\"name\": \"entity_revision\", \"type\": \"BIGINT\", \"description\": \"Entity revision returned by the API; use when joining snapshots.\"}, {\"name\": \"source_api\", \"type\": \"VARCHAR\", \"description\": \"Wikibase API supplying this row.\"}, {\"name\": \"statement_id\", \"type\": \"VARCHAR\", \"description\": \"Statement supported by this reference.\"}, {\"name\": \"statement_property_id\", \"type\": \"VARCHAR\", \"description\": \"Main property of the referenced statement.\"}, {\"name\": \"reference_index\", \"type\": \"BIGINT\", \"description\": \"Zero-based reference group position within the statement.\"}, {\"name\": \"reference_hash\", \"type\": \"VARCHAR\", \"description\": \"Upstream reference group hash; shared by its constituent snaks.\"}, {\"name\": \"snak_index\", \"type\": \"BIGINT\", \"description\": \"Zero-based snak position within this reference property.\"}, {\"name\": \"property_id\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property ID.\"}, {\"name\": \"snak_type\", \"type\": \"VARCHAR\", \"description\": \"value, somevalue (unknown), or novalue (explicitly no value).\"}, {\"name\": \"datatype\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property datatype.\"}, {\"name\": \"value\", \"type\": \"STRUCT(\\\"entity_id\\\" VARCHAR, \\\"text\\\" VARCHAR, \\\"language\\\" VARCHAR, \\\"time\\\" VARCHAR, \\\"time_precision\\\" INTEGER, \\\"timezone\\\" INTEGER, \\\"before\\\" BIGINT, \\\"after\\\" BIGINT, \\\"calendar_model\\\" VARCHAR, \\\"amount\\\" VARCHAR, \\\"lower_bound\\\" VARCHAR, \\\"upper_bound\\\" VARCHAR, \\\"unit\\\" VARCHAR, \\\"latitude\\\" DOUBLE, \\\"longitude\\\" DOUBLE, \\\"coordinate_precision\\\" DOUBLE, \\\"globe\\\" VARCHAR, \\\"raw_json\\\" VARCHAR)\", \"description\": \"Typed value components and lossless raw JSON; NULL for somevalue/novalue.\"}]",
+        "vgi.title": "Statement_references"
+      },
+      null,
+      [
+        "ids",
+        "timeout_ms",
+        "rank",
+        "property_id",
+        "cache_seconds",
+        "max_rows",
+        "max_bytes",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR[]",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22735,
+      [
+        "SELECT statement_property_id, count(*) AS reference_snaks FROM wiki.wikidata.statement_references(['Q42']) GROUP BY statement_property_id ORDER BY statement_property_id"
+      ],
+      null,
+      []
+    ],
+    [
+      "wiki",
+      "22592",
+      "wikidata",
+      "statements",
+      null,
+      "table",
+      "Read full Wikidata statements with typed values",
+      null,
+      {
+        "vgi.category": "wikidata",
+        "vgi.doc_llm": "Supply ids as `VARCHAR[]`. Each row contains statement_id, property_id, rank, snak_type and a typed value `STRUCT`. Use value.entity_id, value.text, value.time, value.amount or coordinate fields. Time precision/calendar and quantity units/bounds are preserved; amounts remain exact decimal strings. value.raw_json retains all upstream datavalue fields. somevalue and novalue have NULL value with distinct snak_type. property_id filters main statement properties; rank=best selects preferred, otherwise normal, per property.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.",
+        "vgi.doc_md": "## Read full Wikidata statements with typed values\n\nSupply ids as `VARCHAR[]`. Each row contains statement_id, property_id, rank, snak_type and a typed value `STRUCT`. Use value.entity_id, value.text, value.time, value.amount or coordinate fields. Time precision/calendar and quantity units/bounds are preserved; amounts remain exact decimal strings. value.raw_json retains all upstream datavalue fields. somevalue and novalue have NULL value with distinct snak_type. property_id filters main statement properties; rank=best selects preferred, otherwise normal, per property.\n\nRequests use configurable HTTP endpoints, bounded response sizes, retries and timeouts. cache_seconds controls a bounded process-local cache; zero bypasses it. An invocation freezes its complete result before emitting rows; there is no cross-query or cross-entity transaction snapshot. Errors fail explicitly rather than silently returning partial results. Order results explicitly.\n\n### SQL usage\n\nBatch entity IDs in one call, then join the returned rows to local SQL tables. Function arguments must be constants known when SQL binds.",
+        "vgi.example_queries": "[{\"sql\": \"SELECT property_id, count(*) AS statements FROM wiki.wikidata.statements(['Q42']) GROUP BY property_id ORDER BY property_id\", \"description\": \"Read full Wikidata statements with typed values\"}]",
+        "vgi.executable_examples": "[{\"sql\": \"SELECT property_id, count(*) AS statements FROM wiki.wikidata.statements(['Q42']) GROUP BY property_id ORDER BY property_id\", \"description\": \"Read full Wikidata statements with typed values\"}]",
+        "vgi.keywords": "[\"wikidata\", \"wikibase\", \"knowledge\", \"graph\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"requested_id\", \"type\": \"VARCHAR\", \"description\": \"Requested ID, before entity redirects.\"}, {\"name\": \"entity_id\", \"type\": \"VARCHAR\", \"description\": \"Canonical Wikibase entity ID.\"}, {\"name\": \"entity_revision\", \"type\": \"BIGINT\", \"description\": \"Entity revision returned by the API; use when joining snapshots.\"}, {\"name\": \"source_api\", \"type\": \"VARCHAR\", \"description\": \"Wikibase API supplying this row.\"}, {\"name\": \"statement_id\", \"type\": \"VARCHAR\", \"description\": \"Stable statement identifier for joining qualifiers and references.\"}, {\"name\": \"rank\", \"type\": \"VARCHAR\", \"description\": \"preferred, normal, or deprecated.\"}, {\"name\": \"property_id\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property ID.\"}, {\"name\": \"snak_type\", \"type\": \"VARCHAR\", \"description\": \"value, somevalue (unknown), or novalue (explicitly no value).\"}, {\"name\": \"datatype\", \"type\": \"VARCHAR\", \"description\": \"Wikibase property datatype.\"}, {\"name\": \"value\", \"type\": \"STRUCT(\\\"entity_id\\\" VARCHAR, \\\"text\\\" VARCHAR, \\\"language\\\" VARCHAR, \\\"time\\\" VARCHAR, \\\"time_precision\\\" INTEGER, \\\"timezone\\\" INTEGER, \\\"before\\\" BIGINT, \\\"after\\\" BIGINT, \\\"calendar_model\\\" VARCHAR, \\\"amount\\\" VARCHAR, \\\"lower_bound\\\" VARCHAR, \\\"upper_bound\\\" VARCHAR, \\\"unit\\\" VARCHAR, \\\"latitude\\\" DOUBLE, \\\"longitude\\\" DOUBLE, \\\"coordinate_precision\\\" DOUBLE, \\\"globe\\\" VARCHAR, \\\"raw_json\\\" VARCHAR)\", \"description\": \"Typed value components and lossless raw JSON; NULL for somevalue/novalue.\"}]",
+        "vgi.title": "Statements"
+      },
+      null,
+      [
+        "ids",
+        "timeout_ms",
+        "rank",
+        "property_id",
+        "cache_seconds",
+        "max_rows",
+        "max_bytes",
+        "lang",
+        "api_url"
+      ],
+      [
+        "VARCHAR[]",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR",
+        "BIGINT",
+        "BIGINT",
+        "BIGINT",
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22736,
+      [
+        "SELECT property_id, count(*) AS statements FROM wiki.wikidata.statements(['Q42']) GROUP BY property_id ORDER BY property_id"
+      ],
+      null,
+      []
+    ]
+  ]
+}

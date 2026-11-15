@@ -1,0 +1,395 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "catalog_sha256": "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+        "notes": "Actual complete functions/tables/views exports reconcile to ten schema/name surfaces; wiki_page overloads count once. Current public revision independently attached; source delta since release is composed metadata/examples only. Analytical receipts execute releasev0.5.0; exact-current analytical execution is not claimed."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff",
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "catalog_sha256": "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff",
+        "notes": "Actual complete functions/tables/views exports reconcile to ten schema/name surfaces; wiki_page overloads count once. Current public revision independently attached; source delta since release is composed metadata/examples only. Analytical receipts execute releasev0.5.0; exact-current analytical execution is not claimed."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_population_statements_and_join_grain.ipynb",
+      "sha256": "3e55968009a13820050fc9e578566e536ec248c5cc5e5b6897aa11f3189db1fe",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "ce9c20b5b2a6bed0510b094f7ecfe2b32687aeb925cfc229030063114cd4d38c"
+      }
+    },
+    {
+      "path": "02_budget_context_without_changing_identity.ipynb",
+      "sha256": "35c7a50051091a5ee84eb369d4e634c45b78ee7b02ecf8f3764a453fb2dbf390",
+      "execution": {
+        "path": "coverage/run-02.json",
+        "sha256": "e6d24626671bc98e4f28784d14902e086a3f1f4115ba1d57c7bc28073757f7c5"
+      }
+    },
+    {
+      "path": "03_labels_are_not_item_keys.ipynb",
+      "sha256": "f9efd1ab25f00ceb988a780ac8bcf26e2ac6a7f4790c3af0d8908ffc32aad2b3",
+      "execution": {
+        "path": "coverage/run-03.json",
+        "sha256": "90acc411e3cfd3c85990df202cb130ba0fe98f9d0b60f0ef4bad47885e68c933"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "entity"
+      },
+      "notebook": "01_population_statements_and_join_grain.ipynb",
+      "sql": [
+        {
+          "cell": "8cb95dec",
+          "reference": "wiki.wikidata.entity"
+        }
+      ],
+      "narrative_cells": [
+        "f3076a20"
+      ],
+      "result_cells": [
+        "8cb95dec"
+      ],
+      "interpretation_cells": [
+        "4770e7ba"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "3e55968009a13820050fc9e578566e536ec248c5cc5e5b6897aa11f3189db1fe",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Three recorded city entity rows retain label language, requestedID,revision and modifiedUTC. Independent relation revisions must agree before those identities and labels join the population statements."
+      }
+    },
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "statements"
+      },
+      "notebook": "01_population_statements_and_join_grain.ipynb",
+      "sql": [
+        {
+          "cell": "8cb95dec",
+          "reference": "wiki.wikidata.statements"
+        }
+      ],
+      "narrative_cells": [
+        "f3076a20"
+      ],
+      "result_cells": [
+        "ee8e326e"
+      ],
+      "interpretation_cells": [
+        "5cd82f3b"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "3e55968009a13820050fc9e578566e536ec248c5cc5e5b6897aa11f3189db1fe",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Seventy recorded population statements preserve complete keys and ranks. Twenty meet explicit2000+date/precision/unit criteria; separate best-rank reads are shown with their dates, never treated as current population."
+      }
+    },
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "qualifiers"
+      },
+      "notebook": "01_population_statements_and_join_grain.ipynb",
+      "sql": [
+        {
+          "cell": "8cb95dec",
+          "reference": "wiki.wikidata.qualifiers"
+        }
+      ],
+      "narrative_cells": [
+        "9e2c79ef"
+      ],
+      "result_cells": [
+        "daf9c848"
+      ],
+      "interpretation_cells": [
+        "5cd82f3b"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "3e55968009a13820050fc9e578566e536ec248c5cc5e5b6897aa11f3189db1fe",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Per-statement P585 date count, original time string,precision and calendar decide eligibility. Other qualifiers remain context; aggregation prevents multiplying statements, and a year extraction does not invent month/day precision."
+      }
+    },
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "statement_references"
+      },
+      "notebook": "01_population_statements_and_join_grain.ipynb",
+      "sql": [
+        {
+          "cell": "8cb95dec",
+          "reference": "wiki.wikidata.statement_references"
+        }
+      ],
+      "narrative_cells": [
+        "9e2c79ef"
+      ],
+      "result_cells": [
+        "daf9c848"
+      ],
+      "interpretation_cells": [
+        "5e518e3f"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "3e55968009a13820050fc9e578566e536ec248c5cc5e5b6897aa11f3189db1fe",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Reference groups are counted separately from snaks at the full statement key. Context aggregation preserves70claims versus171rows from raw qualifier/reference expansion; counts are provenance diagnostics, not evidence-quality scores."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "wiki_search"
+      },
+      "notebook": "02_budget_context_without_changing_identity.ipynb",
+      "sql": [
+        {
+          "cell": "search-sql",
+          "reference": "wiki.main.wiki_search"
+        }
+      ],
+      "narrative_cells": [
+        "search-question"
+      ],
+      "result_cells": [
+        "search-sql"
+      ],
+      "interpretation_cells": [
+        "search-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "35c7a50051091a5ee84eb369d4e634c45b78ee7b02ecf8f3764a453fb2dbf390",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Six distinct Mercury article candidates retain pageIDs,wordcounts and canonicalURLs. Explicit planet/element titles are checked against that slice; wordcount describes article length, not ranking or reliability."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "wiki_page_summary"
+      },
+      "notebook": "02_budget_context_without_changing_identity.ipynb",
+      "sql": [
+        {
+          "cell": "identity-sql",
+          "reference": "wiki.main.wiki_page_summary"
+        }
+      ],
+      "narrative_cells": [
+        "identity-question"
+      ],
+      "result_cells": [
+        "identity-sql"
+      ],
+      "interpretation_cells": [
+        "context-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "35c7a50051091a5ee84eb369d4e634c45b78ee7b02ecf8f3764a453fb2dbf390",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Two rich summary rows provide pageID,title,canonicalURL and full extract lengths754/398. Page identity joins are checked before local character clipping;400-budget retains400/398characters with provenance intact."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "wiki_page"
+      },
+      "notebook": "02_budget_context_without_changing_identity.ipynb",
+      "sql": [
+        {
+          "cell": "identity-sql",
+          "reference": "wiki.main.wiki_page"
+        }
+      ],
+      "narrative_cells": [
+        "identity-question"
+      ],
+      "result_cells": [
+        "identity-sql"
+      ],
+      "interpretation_cells": [
+        "context-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "35c7a50051091a5ee84eb369d4e634c45b78ee7b02ecf8f3764a453fb2dbf390",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "The positional scalar reads both selected titles into materialized text rows. Its entire extract must equal the rich reader; the local budget derives from its output while inheriting the input title/page/item identity."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "wiki_entity"
+      },
+      "notebook": "02_budget_context_without_changing_identity.ipynb",
+      "sql": [
+        {
+          "cell": "identity-sql",
+          "reference": "wiki.main.wiki_entity"
+        }
+      ],
+      "narrative_cells": [
+        "identity-question"
+      ],
+      "result_cells": [
+        "identity-sql"
+      ],
+      "interpretation_cells": [
+        "context-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "35c7a50051091a5ee84eb369d4e634c45b78ee7b02ecf8f3764a453fb2dbf390",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Actual recorded pageprops map distinct English pages19694/18617142 to Q308/Q925. Titles and canonicalURLs must reconcile with summaries; both identifiers stay attached after truncating context text."
+      }
+    },
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "search"
+      },
+      "notebook": "03_labels_are_not_item_keys.ipynb",
+      "sql": [
+        {
+          "cell": "search-sql",
+          "reference": "wiki.wikidata.search"
+        }
+      ],
+      "narrative_cells": [
+        "search-question"
+      ],
+      "result_cells": [
+        "search-sql"
+      ],
+      "interpretation_cells": [
+        "identity-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "f9efd1ab25f00ceb988a780ac8bcf26e2ac6a7f4790c3af0d8908ffc32aad2b3",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "Six returned Mercury item candidates include distinct descriptions and IDs. Explicitly selected planetQ308/elementQ925 are validated members, then joined byIRI to the fixed graph slice; same-looking labels do not auto-match identities."
+      }
+    },
+    {
+      "object": {
+        "schema": "wikidata",
+        "name": "sparql"
+      },
+      "notebook": "03_labels_are_not_item_keys.ipynb",
+      "sql": [
+        {
+          "cell": "graph-sql",
+          "reference": "wiki.wikidata.sparql"
+        }
+      ],
+      "narrative_cells": [
+        "graph-question"
+      ],
+      "result_cells": [
+        "graph-sql"
+      ],
+      "interpretation_cells": [
+        "terms-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "/root/notebooks_sympy",
+        "reviewed_at": "2026-11-14T23:54:50.025863+00:00",
+        "notebook_sha256": "f9efd1ab25f00ceb988a780ac8bcf26e2ac6a7f4790c3af0d8908ffc32aad2b3",
+        "catalog_sha256": [
+          "3612f1f39252dcaf4674ec6e836f59cd95daee5f86e285d0fa2ca41b937dd2c5",
+          "65a687a6519b7974db5c928fbf98dd8fd437a1edc9c7861df5b38010f39822ff"
+        ],
+        "purpose": "Preserve source identity, statement grain and typed values while changing a local display decision.",
+        "finding": "One materialized read-only POST SELECT returns four item-language bindings. The two selected English labels lower to one string but keep twoIRIs. Decimal lexical80/type stays paired; the planet optional variable remainsSQLNULL. Fullqueryvisible and requestaudit verifies onebind-timefetch."
+      }
+    }
+  ]
+}

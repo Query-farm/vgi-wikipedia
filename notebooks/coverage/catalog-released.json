@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "repository": "Query-farm/vgi-wikipedia",
+  "revision": "4f70512a09ff71f5d946a77c0adf81699c139e16",
+  "captured_at": "2026-11-14T23:41:50.054260+00:00",
+  "default_schema": "main",
+  "scope": "all_public_functions_and_tables",
+  "complete": true,
+  "evidence": [
+    {
+      "path": "coverage/released-functions.json",
+      "sha256": "d61a3181841b63e655eb9ccf467c7540b6bf3fc0c664508dba6205374ff52081",
+      "description": "Complete worker-filtered functions export through actual published Haybarn"
+    },
+    {
+      "path": "coverage/released-tables.json",
+      "sha256": "6c135f988463b2a7bf55479775f3470ddedb1cb546abf884cc5a8a837b1e016c",
+      "description": "Complete worker-filtered tables export through actual published Haybarn"
+    },
+    {
+      "path": "coverage/released-views.json",
+      "sha256": "e40b7cdf0a94eda65e4b30523bb3f5592f454853be08000a4c709dc661799f59",
+      "description": "Complete worker-filtered views export through actual published Haybarn"
+    }
+  ],
+  "objects": [
+    {
+      "schema": "main",
+      "name": "wiki_entity",
+      "kind": "function",
+      "signatures": [
+        "wiki_entity(VARCHAR, BIGINT, BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "wiki_page",
+      "kind": "function",
+      "signatures": [
+        "wiki_page(VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "wiki_page",
+      "kind": "function",
+      "signatures": [
+        "wiki_page(VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "wiki_page_summary",
+      "kind": "function",
+      "signatures": [
+        "wiki_page_summary(VARCHAR, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "wiki_search",
+      "kind": "function",
+      "signatures": [
+        "wiki_search(VARCHAR, BIGINT, VARCHAR, BIGINT, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "entity",
+      "kind": "function",
+      "signatures": [
+        "entity(VARCHAR[], BIGINT, BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "qualifiers",
+      "kind": "function",
+      "signatures": [
+        "qualifiers(VARCHAR[], BIGINT, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "search",
+      "kind": "function",
+      "signatures": [
+        "search(VARCHAR, BIGINT, BIGINT, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "sparql",
+      "kind": "function",
+      "signatures": [
+        "sparql(VARCHAR, BIGINT, BIGINT, VARCHAR, BIGINT, BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "statement_references",
+      "kind": "function",
+      "signatures": [
+        "statement_references(VARCHAR[], BIGINT, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "wikidata",
+      "name": "statements",
+      "kind": "function",
+      "signatures": [
+        "statements(VARCHAR[], BIGINT, VARCHAR, VARCHAR, BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    }
+  ]
+}

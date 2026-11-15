@@ -1,108 +1,156 @@
-# Wikipedia worker: Wikidata statement notebook
+# Wikipedia and Wikidata notebooks
 
-[01 · Population statements need dates and statement keys](01_population_statements_and_join_grain.ipynb)
-uses the worker's Wikidata functions to retrieve population statements, date
-qualifiers, reference groups and preferred ranks. Visible SQL preserves statement
-keys and measures row multiplication from one-to-many joins. Two charts show dated
-claims and the difference between statement counts and expanded join counts.
+| Notebook | Question | Controlled experiment |
+| --- | --- | --- |
+| [01 · Population statements need dates and statement keys](01_population_statements_and_join_grain.ipynb) | Keep dates and reference groups attached to the correct population statement; measure row multiplication from unaggregated context. | `MIN_YEAR`: 2000 → 2010 |
+| [02 · A context budget changes text length, not article identity](02_budget_context_without_changing_identity.ipynb) | Discover Mercury articles, reconcile page/item IDs and scalar/table summary readers, then retain a bounded text prefix. | `CONTEXT_CHARS`: 400 → 800 |
+| [03 · Labels are presentation; item IRIs are identity](03_labels_are_not_item_keys.ipynb) | Select two discovered Wikidata items, inspect typed/unbound SPARQL values and show why lowercased labels cannot identify them uniquely. | `LABEL_LANGUAGE`: `en` → `fr` |
 
-## Run from this directory
+Each book is independent, uses recorded official public responses by default, and
+has visible analytical SQL plus two SVG figures. No synthetic population, article,
+entity or graph result is substituted.
 
-Install [uv](https://docs.astral.sh/uv/) and Git, then:
+## Setup and execution
+
+Install [uv](https://docs.astral.sh/uv/) and Git, then run from this directory:
 
 ```sh
 uv sync --locked
-uv run --locked python execute.py
+uv run --locked vgi-notebooks --timeout 600
+uv run --locked vgi-notebooks 01_population_statements_and_join_grain.ipynb \
+  --parameters '{"MIN_YEAR":2010}' --output-dir artifacts/since-2010
+uv run --locked vgi-notebooks 02_budget_context_without_changing_identity.ipynb \
+  --parameters '{"CONTEXT_CHARS":800}' --output-dir artifacts/context-800
+uv run --locked vgi-notebooks 03_labels_are_not_item_keys.ipynb \
+  --parameters '{"LABEL_LANGUAGE":"fr"}' --output-dir artifacts/french
 ```
 
-Only this complete `notebooks/` directory is needed. The runner uses a temporary
-kernel specification and this directory as cwd. It replaces saved outputs only
-after success; no global Jupyter kernel is registered. For VS Code, select
-`notebooks/.venv/bin/python`. Connection and analytical SQL are visible; support
-and plotting code are folded.
+The shared [v0.3.38 notebook package](https://github.com/Query-farm/vgi-example-notebooks/tree/v0.3.38)
+provides the runner, credential isolation, UTC parent connection and presentation.
+Local dependencies are locked, including Haybarn **2.0.0rc11**. Open-in-Colab links
+appear at the top of each notebook. Colab setup installs only the shared base
+package; the `[runner]` extra remains local. Three fresh notebook-only Python 3.12
+runs with plotting and Jupyter libraries already imported passed without replacing
+their versions. This verifies local preloaded-kernel compatibility, not a manually
+executed hosted Colab session.
 
-Run the proposed experiment into a separate copy:
+The `wikipedia` registry verifies thirteen companion files from immutable commit
+`d85e73b77f7a82954472cb24f409d9fa866c63c7`. A notebook opened alone downloads its
+helpers, recordings and query without cloning the worker. Restart the kernel and
+run all when changing source modes or switching books. The publication runner
+preserves successful defaults and requires a separate output directory for parameter
+overrides. Native SVG supports Jupyter/Colab; saved content-addressed image links
+also support GitHub's notebook renderer.
+
+Both recorded and live modes visibly attach the actual published release:
+
+```text
+uvx --python 3.13 --from git+https://github.com/Query-farm/vgi-wikipedia@v0.5.0 vgi-wikipedia-worker
+```
+
+The tag resolves to `4f70512a09ff71f5d946a77c0adf81699c139e16`. Its declared
+requirements install in an isolated worker process without a transitive `--with`
+stack or changes to notebook-kernel libraries. No worker checkout or build is needed.
+
+## Source provenance and licenses
+
+Notebook 01 retains the original unchanged public Wikidata entity response captured
+**2026-11-14 10:39:37 UTC** for Q60, Q84 and Q90. The [manifest](fixtures/manifest.json)
+records the exact request, entity revisions, raw/compressed hashes and timestamp.
+The strict server verifies both hashes and accepts only the recorded request; all
+five actual worker reads parse the same source bytes. Its seventy population
+statements are not harmonized city geographies or a current population estimate.
+
+Notebooks 02 and 03 use seven additional original responses described in
+[the discovery recording guide](discovery_recordings/README.md) and
+[manifest](discovery_recordings/manifest.json): article search; two summaries; two
+page-to-item mappings; entity search; and a read-only SPARQL POST. The complete graph
+query is visible in SQL and preserved in [discovery_query.rq](discovery_query.rq).
+The server checks method, path, parameters and hashes, performs no external requests
+and does no filtering, parsing or graph evaluation. The released worker does the
+request construction and SQL conversion.
+
+Wikidata structured data is [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing).
+Wikipedia snippet/summary text is by Wikipedia contributors under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); canonical URLs and
+summary revision links supply attribution in the recording guide. These licenses
+are separate from the worker's MIT code license. No thumbnails, linked external
+sources or full article bodies are downloaded. No endorsement is implied.
+
+## Optional live retrieval
+
+Each notebook accepts the same explicit source switch, for example:
 
 ```sh
-uv run --locked python execute.py --parameters '{"MIN_YEAR":2010}' --output-dir validation/since-2010
+uv run --locked vgi-notebooks 03_labels_are_not_item_keys.ipynb \
+  --parameters '{"DATA_MODE":"live"}' --output-dir artifacts/live-labels --timeout 600
 ```
 
-For a separate explicit live retrieval:
+All three full live runs passed during this revision. They reset inherited API
+endpoint overrides and call the official public HTTPS services, with no credentials
+and no fallback to recordings. Structured requests disable the response cache and
+use the worker's bounded request/result budgets; the article client uses its
+published bounded retries/timeouts. A new source error remains an error.
 
-```sh
-uv run --locked python execute.py --parameters '{"DATA_MODE":"live"}' --output-dir validation/live
-```
+The calls are independent API observations, not an atomic snapshot. Notebook 01
+requires entity revisions to agree across relations. Notebook 02 checks title,
+page ID, URL and complete summary equality before applying its budget. A future
+search/content change may fail a slice-specific assertion; do not relabel that
+failure as a successful replay or silently change the inputs.
 
-Overrides require a different output directory; unknown parameters and invalid
-values fail explicitly. Experiment copies include assets, fixtures and environment
-files. Restart the kernel and run all after editing. Reset `MIN_YEAR = 2000` and
-`DATA_MODE = 'recorded'` for the saved example. Validation artifacts are ignored.
+Before any ATTACH, shared setup creates a fresh empty temporary SQL-secret directory
+with persistent secrets disabled. Empty inventories are checked before use and at
+cleanup. No SQL secret is created. Cleanup closes only this connection/server,
+removes its temporary secret directory and restores the environment keys changed
+by the source helper. Saved user SQL secrets are not loaded or altered.
 
-## Portable worker and data provenance
+## What the comparisons mean
 
-The literal ATTACH uses `uvx` with immutable public
-[Git revision a0f139f7f6d7ce7a1f1a01e3ad48ab45a4cb8811](https://github.com/Query-farm/vgi-wikipedia/tree/a0f139f7f6d7ce7a1f1a01e3ad48ab45a4cb8811)
-and the `vgi-wikipedia-worker` entry point. Python 3.13, VGI Python 0.51.1,
-VGI RPC 0.53.1, PyArrow 26.0.1 and RDFLib 7.6.0 are explicitly pinned. Release
-v0.5.0 supplies Python archives, not native github-auto assets. No local build or
-parent checkout is required; initial Git/uv downloads need network access.
-The notebook has its own lockfile and Haybarn 2.0.0rc11. Changing pins requires
-rerunning defaults, the parameter experiment and the supported live path.
+Notebook 01 aggregates qualifiers and reference snaks at the complete statement key
+before joining. Reference groups are distinct from snaks and do not score source
+quality. Original time strings and precision remain visible; year extraction does
+not invent a missing month/day. Preferred rank is not a latest-date function.
+The default selects **20** dated statements; the 2010 cutoff selects **17**. The
+fixed full-source audit remains **70 statements / 171 expanded rows / 70 aggregated
+rows**, and its figure stays identical. Separate population axes support within-item
+inspection; cross-city rankings would require harmonized scopes and methods.
 
-`fixtures/wikidata-cities.json.gz` contains the **unmodified** JSON bytes returned
-by the public Wikidata Action API, compressed reproducibly. The manifest records
-request parameters, complete URL, capture timestamp, byte count, SHA-256 hashes
-and entity revisions. The response contains [New York City (Q60)](https://www.wikidata.org/wiki/Q60),
-[London (Q84)](https://www.wikidata.org/wiki/Q84) and
-[Paris (Q90)](https://www.wikidata.org/wiki/Q90). Structured Wikidata data is
-[CC0](https://www.wikidata.org/wiki/Wikidata:Licensing); no article text or image
-content is reproduced. External documents referenced by Wikidata have their own
-terms and are not downloaded here.
+Notebook 02 keeps six search candidates visible, then explicitly chooses the planet
+and element. Search word count is article length, not relevance or quality. The
+summary readers agree on **754** and **398** Unicode characters. A per-article
+budget of 400 retains **798** characters total; 800 retains **1152**. Page IDs,
+Q308/Q925, canonical URLs and full source lengths stay fixed. A character budget is
+not a token/byte budget or a promise of complete sentences or sufficient evidence.
 
-The recorded response was captured at 2026-11-14 10:39:37 UTC. `replay.py` serves it
-on an ephemeral loopback port only for the exact recorded GET request. Unknown
-paths/parameters and POSTs fail. It performs no outbound access. Both compressed
-and raw hashes are checked before serving. The notebook verifies five accepted
-requests and no rejected requests, with identical response hashes. SQL uses the
-real published worker to parse each response; no result table is substituted.
+Notebook 03 selects the same two IDs from six Wikidata search candidates. Its graph
+slice has four item-language rows. English or French labels lower to one display
+string, while **two item IRIs** remain distinct. The element's `80` lexical value
+retains its decimal datatype; the planet's optional atomic-number binding stays
+SQL NULL. Changing display language changes labels and figures only, not raw terms,
+identity, numeric binding or missingness. No NULL is replaced with zero.
 
-Live mode calls the public API five times with cache disabled and bounded worker
-response/time limits. It is not an atomic source snapshot. Entity revisions must
-agree across all retrieved relations before the joins proceed; drift fails clearly.
-The run-start timestamp is separate from each entity's modification timestamp.
-Errors stop execution without falling back to the recording. Saved outputs are
-recorded mode by default. No API credential is needed. An empty temporary SQL secret
-directory with persistent secrets disabled keeps saved credentials out of this run.
+## Coverage and validation
 
-## Interpretation and checks
+[coverage.json](coverage.json) maps visible SQL, returned results, interpretation and
+successful raw-notebook execution receipts to **10/10 distinct public names** in
+both catalogs. `wiki_page` overloads count once; both `main` and `wikidata` schemas
+are included. Actual complete functions/tables/views exports reconcile the denominator.
+The independently attached current source is
+`9558938291f3920382345233ae504f89bf7ca02e`; its changes since the release are composed
+examples/metadata, with no runtime implementation changes. Analytical receipts
+execute v0.5.0, so exact released/current-runtime coverage is **10/0**; exact-current
+analytical execution is not claimed.
 
-The capture contains 70 population statements. Twenty meet the default display
-criteria (years since 2000); moving the inclusive lower year to 2010 retains 17.
-The full-source audit expands 70 statements to 171 rows when every qualifier is
-joined to every reference snak; aggregating context first retains 70 rows. The
-second chart is unchanged by the year parameter.
+All three recorded defaults, detached parameter experiments, preloaded-kernel runs
+and separate live runs passed. The books contain **12**, **8** and **9** visible SQL
+invariants, respectively, plus revision/identity checks. Recorded request audits
+verify **5**, **7** and **2** accepted requests and no unexpected replay request.
+Ruff, presentation/structure, coverage, parameter/default-preservation guards and
+all changed figures were checked. Worker source reuses its
+[green source CI](https://github.com/Query-farm/vgi-wikipedia/actions/runs/43587174831);
+no worker rebuild, full source-suite rerun or container publication was needed.
 
-Population quantities remain exact decimal strings in the raw result and are
-explicitly cast to DECIMAL for selection. The plot converts to millions. It retains
-unconnected statement points, marks preferred versus normal ranks, and shows
-supplied paired quantity bounds where available. These are reported bounds, not
-confidence intervals; missing bounds are not zero uncertainty. Independent vertical
-scales are disclosed and the panels share a year axis.
-
-The original time string, precision and calendar model are retained. Year-only
-values with zero month/day are never coerced to a fabricated daily date. All plotted
-values are positioned by year even when their source has finer precision. Other
-qualifiers remain in the raw relation and may affect scope or method. The three
-items' administrative boundaries and statistical definitions are **not harmonized**;
-the notebook makes no current-population, trend-rate or cross-city ranking claim.
-
-A full join key is `(source_api, entity_revision, requested_id, statement_id)`.
-Reference groups are counted by their statement-local reference index; their snaks
-are counted separately. Neither count establishes source independence or quality.
-`rank='best'` means preferred when present, otherwise normal for that property; it
-is not a latest-date query. Twelve SQL relationship checks, revision agreement and
-request/hash audits validate the mechanics without asserting a desired population
-ranking.
-
-The unchanged official Query.Farm Strata Sun and VGI branding is bundled in
-`assets/`, with the linked wordmark at the top and bottom of the notebook.
+Background: [MediaWiki search API](https://www.mediawiki.org/wiki/API:Search) and
+[Wikidata SPARQL examples](https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples).
+Changing a release or recording pin requires renewed source, catalog, execution,
+request-audit and visual verification.

@@ -1,0 +1,23 @@
+{
+  "query": "SELECT tags FROM duckdb_databases() WHERE database_name='wiki'",
+  "columns": [
+    "tags"
+  ],
+  "rows": [
+    [
+      {
+        "vgi.agent_test_tasks": "[{\"name\": \"page_summary_title\", \"prompt\": \"Using the wiki catalog, fetch the Wikipedia page summary for the article titled 'DuckDB' and return just its resolved page title.\"}, {\"name\": \"missing_page_is_null\", \"prompt\": \"Using the wiki catalog's scalar page-extract function, determine whether the English Wikipedia article 'ThisPageDoesNotExist_zzz' is missing. Return a single boolean that is true when the page has no summary.\"}, {\"name\": \"search_found\", \"prompt\": \"Using the wiki catalog, run a full-text search of English Wikipedia for 'apache arrow' (limit to 3 results) and return a single boolean that is true when at least one matching article was found.\"}, {\"name\": \"page_has_extract\", \"prompt\": \"Using the wiki catalog, return a single boolean that is true when the English Wikipedia article 'DuckDB' has a non-empty summary extract.\"}, {\"name\": \"article_wikidata_id\", \"prompt\": \"Return the Wikidata ID associated with the English Wikipedia article 'Douglas Adams'.\"}, {\"name\": \"wikidata_label\", \"prompt\": \"Return the English label for Wikidata entity Q42.\"}, {\"name\": \"wikidata_birth\", \"prompt\": \"Return Q42's birth-date string from P569, preserving the upstream time representation.\"}, {\"name\": \"wikidata_qualifiers\", \"prompt\": \"For Q42's spouse statements (P26), list the distinct qualifier property IDs in property order.\"}, {\"name\": \"wikidata_sources\", \"prompt\": \"Return whether Q42's instance-of statements (P31) have any reference snaks.\"}, {\"name\": \"wikidata_discovery\", \"prompt\": \"Search Wikidata for 'Douglas Adams' with three candidates; return whether any were found.\"}, {\"name\": \"wikidata_graph\", \"prompt\": \"Use SPARQL ASK to check whether Wikidata Q42 has any outgoing RDF triples. Return one boolean.\"}]",
+        "vgi.author": "Query.Farm",
+        "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
+        "vgi.doc_llm": "Search Wikipedia, read article summaries and enrich local SQL data with Wikidata knowledge. Article identity links encyclopedic text to structured entities; statements preserve typed values, ranks, qualifiers and sources. Graph queries express relationships using remote SPARQL. This read-only connector uses public MediaWiki and Wikibase APIs without an API key. Article text is CC-BY-SA; Wikidata structured data is CC0. Custom sites may have different terms.",
+        "vgi.doc_md": "# Wikipedia and Wikidata in SQL\n\nConnect encyclopedic articles to structured knowledge and join the results to local SQL tables. Use it for retrieval-augmented generation, fact lookup and entity enrichment. Article identity provides a reliable bridge to Wikidata without guessing from similar labels.\n\n## Data and context\n\nStatements retain their rank, typed value, qualifiers and reference sources. Source revisions help identify observations taken at different times. Remote SPARQL supports graph patterns and property paths; RDF terms retain their lexical value, datatype and language. Results are bounded and cached locally.\n\n## Access\n\nThe worker calls the free [MediaWiki API](https://www.mediawiki.org/wiki/API:Main_page) and [Wikibase API](https://www.mediawiki.org/wiki/Wikibase/API). No API key is required. Queries require outbound access; language and endpoint options select the upstream site. Public endpoint availability and dataset coverage affect results.\n\nWorker code is MIT. Wikipedia article text is **CC-BY-SA**; callers handle attribution and share-alike requirements. Wikidata structured data is **CC0**. Custom endpoints have their own terms.",
+        "vgi.keywords": "[\"wikipedia\", \"mediawiki\", \"wiki\", \"search\", \"full-text search\", \"page\", \"summary\", \"extract\", \"article\", \"encyclopedia\", \"rag\", \"retrieval\", \"knowledge grounding\", \"fact lookup\", \"egress connector\"]",
+        "vgi.license": "MIT",
+        "vgi.subtitle": "Connect Wikipedia articles with Wikidata statements and graph queries from SQL.",
+        "vgi.support_contact": "https://github.com/Query-farm/vgi-wikipedia/issues",
+        "vgi.support_policy_url": "https://github.com/Query-farm/vgi-wikipedia/blob/main/README.md",
+        "vgi.title": "Wikipedia and Wikidata"
+      }
+    ]
+  ]
+}
