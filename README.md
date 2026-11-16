@@ -68,7 +68,7 @@ SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams');
 SELECT entity_id, label, label_language FROM wiki.wikidata.entity(['Q42']);
 ```
 
-The worker requires Python 3.14+; the lockfile resolves `vgi-python==0.51.1`
+The worker requires Python 3.14+; the lockfile resolves `vgi-python==0.52.2`
 (protocol 3.3). Use matching current VGI engine extensions. The earlier `v0.4.0`
 GitHub/Docker release provides the article functions only.
 
@@ -76,7 +76,7 @@ To run the release without a checkout, use this location in the same ATTACH:
 
 ```sql
 ATTACH 'wiki' AS wiki (TYPE vgi,
-  LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.5.0 vgi-wikipedia-worker');
+  LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.5.1 vgi-wikipedia-worker');
 ```
 
 No API key is needed. Live queries need outbound access. See the different article
