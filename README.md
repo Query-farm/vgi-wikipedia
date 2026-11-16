@@ -68,7 +68,7 @@ SELECT title, entity_id FROM wiki.main.wiki_entity('Douglas Adams');
 SELECT entity_id, label, label_language FROM wiki.wikidata.entity(['Q42']);
 ```
 
-The worker requires Python 3.13+; the lockfile resolves `vgi-python==0.51.1`
+The worker requires Python 3.14+; the lockfile resolves `vgi-python==0.51.1`
 (protocol 3.3). Use matching current VGI engine extensions. The earlier `v0.4.0`
 GitHub/Docker release provides the article functions only.
 

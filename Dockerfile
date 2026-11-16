@@ -6,7 +6,7 @@
 # See docker-entrypoint.sh. This is a keyless egress connector over the FREE
 # MediaWiki Action API + REST summary endpoint — no API key is ever needed.
 # syntax=docker/dockerfile:1
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 ARG VERSION=0.0.0
 ARG GIT_COMMIT=unknown

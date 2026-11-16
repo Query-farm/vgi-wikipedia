@@ -50,7 +50,7 @@ def retry_delay(value: str | None, attempt: int) -> float:
         except ValueError:
             try:
                 return max(0.0, (parsedate_to_datetime(value) - datetime.now(UTC)).total_seconds())
-            except (ValueError, TypeError, OverflowError):
+            except ValueError, TypeError, OverflowError:
                 pass
     return float(0.25 * 2**attempt)
 
