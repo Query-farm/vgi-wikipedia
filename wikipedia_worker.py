@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "vgi-python[http]>=0.51.1,<0.52",
+#     "vgi-python[http]>=0.52.0,<0.53",
 #     "httpx>=0.27",
 #     "rdflib>=7.1,<8",
 # ]

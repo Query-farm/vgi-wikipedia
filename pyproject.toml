@@ -26,7 +26,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "vgi-python>=0.51.1,<0.52",
+    "vgi-python>=0.52.0,<0.53",
     "httpx>=0.27",
     "pyarrow",
     "rdflib>=7.1,<8",
@@ -45,12 +45,12 @@ dev = [
 # `http` extra (waitress). CI's http transport leg installs this via
 # `uv sync --extra http`.
 http = [
-    "vgi-python[http]>=0.51.1,<0.52",
+    "vgi-python[http]>=0.52.0,<0.53",
 ]
 # HTTP-serving extra installed by the Docker image (`pip install '.[serve]'`).
 # Same contents as `http`; named `serve` to match the shared docker convention.
 serve = [
-    "vgi-python[http]>=0.51.1,<0.52",
+    "vgi-python[http]>=0.52.0,<0.53",
 ]
 
 [project.scripts]
