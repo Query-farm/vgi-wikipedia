@@ -360,11 +360,10 @@ uv sync --locked --extra dev --extra http
 make check        # all gates, three transports, strict metadata and fixture demo
 make test         # unit/fixture tests + mock-server E2E + SQL (haybarn) E2E
 make test-unit    # pytest: fixture parsers, scan-state round-trip, mock-server E2E
-make test-sql     # DuckDB sqllogictest E2E via haybarn-unittest, mock-server-driven
+make test-sql     # DuckDB sqllogictest E2E over stdio, launch and http, mock-server-driven
 make test-live    # OPTIONAL gated smoke against the real Wikipedia API (needs network)
 make lint         # formatting, ruff, mypy and isolated pydoclint
 make metadata     # strict catalog metadata and executable examples on fixtures
-make test-sql-all # same SQL assertions over subprocess, HTTP and Unix sockets
 make demo         # stock DuckDB end-to-end fixture demo
 ```
 

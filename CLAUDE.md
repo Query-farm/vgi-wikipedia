@@ -41,7 +41,7 @@ tests/                    pytest: parse (fixtures), tables (scan-state round-tri
 tests/fixtures/*.json     captured Action-API search + REST summary shapes
 tests/mock_server.py      canned-response MediaWiki server (pytest + haybarn)
 test/sql/*.test           haybarn-unittest sqllogictest — authoritative E2E
-scripts/run_sql_e2e.sh    starts the mock, points the worker at it, runs haybarn
+ci/run-integration.sh     starts the mock, points the worker at it, runs haybarn
 Makefile                  test / test-unit / test-live / test-sql / lint
 ```
 
@@ -109,9 +109,9 @@ so the worker can target any MediaWiki wiki.
   serialize_state=True)`), the mock-server E2E (real httpx vs canned responses),
   and the scalar tests. Network is mocked at the `WikiClient` boundary or the
   mock HTTP server.
-- **`make test-sql`**: `scripts/run_sql_e2e.sh` starts the mock MediaWiki server,
-  bakes `VGI_WIKIPEDIA_API_URL` (pointed at it) into the worker command, and runs
-  the worker as a real DuckDB subprocess under haybarn-unittest. Asserts the
+- **`make test-sql`**: `ci/run-integration.sh` starts the mock MediaWiki server,
+  exports `VGI_WIKIPEDIA_API_URL` (pointed at it), and runs the worker under
+  DuckDB via haybarn-unittest over stdio, launch and http. Asserts the
   columns, the `sroffset` scan-state round-trip across a batch/page boundary
   (`max_pages := 2` reaches a page-2-only title), plain-text snippets, and a
   clean missing-page path.
