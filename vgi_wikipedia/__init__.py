@@ -26,4 +26,4 @@ share-alike are the user's responsibility. Wikidata structured data is CC0. See 
 
 from __future__ import annotations
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
