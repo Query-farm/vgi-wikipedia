@@ -10,7 +10,7 @@
 # server (tests/mock_server.py). Deterministic, no keys, no cost, no real
 # network egress — the CI gate never depends on live Wikipedia.
 
-HAYBARN_VERSION  ?= 2.0.0rc11
+HAYBARN_VERSION  ?= 2.0.1rc3
 WORKER           := $(CURDIR)/.venv/bin/vgi-wikipedia-worker
 TOOLS            := $(CURDIR)/.tools
 HAYBARN_UNITTEST := $(TOOLS)/bin/haybarn-unittest

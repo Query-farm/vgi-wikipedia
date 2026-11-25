@@ -74,9 +74,11 @@ GitHub/Docker release provides the article functions only.
 
 To run the release without a checkout, use this location in the same ATTACH:
 
+vgi-wikipedia 0.6.0 speaks VGI protocol 3.4, so it needs Haybarn 2.0.1 or newer (Haybarn 2.0.0 loads a 3.3 `vgi` extension that cannot attach it).
+
 ```sql
 ATTACH 'wiki' AS wiki (TYPE vgi,
-  LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.5.1 vgi-wikipedia-worker');
+  LOCATION 'uvx --from git+https://github.com/Query-farm/vgi-wikipedia@v0.6.0 vgi-wikipedia-worker');
 ```
 
 No API key is needed. Live queries need outbound access. See the different article
@@ -375,7 +377,7 @@ real DuckDB subprocess — asserting the columns, the `sroffset` scan-state
 round-trip across a batch boundary, plain-text snippets, and a clean error path.
 
 The Python suite also drives the signed VGI extension from stock DuckDB 2.0.0.
-The SQLLogicTest suite uses Haybarn 2.0.0rc11 locally; CI additionally tests the
+The SQLLogicTest suite uses Haybarn 2.0.1rc3 locally; CI additionally tests the
 current 2.0 release on Linux. Metadata checks execute catalog examples
 against the local fixture server. Pydoclint runs in an isolated `uvx` environment
 because its docstring-parser fork overlaps the SDK's parser package.
